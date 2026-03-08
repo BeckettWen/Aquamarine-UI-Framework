@@ -21,14 +21,10 @@ find_package(glfw3 CONFIG REQUIRED)
 # Replace main.cpp with your actual list of source files
 add_executable(${PROJECT_NAME} 
     main.cpp
-    Button.cpp
-    Button.hpp
-    shaderParse.cpp
-    shaderParse.h
-    VertexArray.cpp
-    VertexArray.hpp
-    Window.h
-    Window.cpp)
+    API_Portal.hpp
+    ./Dependencies/NecessaryFiles/ShaderHandling.hpp
+    ./Dependencies/NecessaryFiles/ShaderHandling.cpp
+)
 
 # 4. Link Libraries using Modern Targets
 # Target-based linking handles include directories automatically
