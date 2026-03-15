@@ -24,6 +24,12 @@ add_executable(${PROJECT_NAME}
     API_Portal.hpp
     ./Dependencies/NecessaryFiles/ShaderHandling.hpp
     ./Dependencies/NecessaryFiles/ShaderHandling.cpp
+    ./Dependencies/NecessaryFiles/Window.hpp
+    ./Dependencies/NecessaryFiles/Window.cpp
+    ./Dependencies/NecessaryFiles/Renderer.hpp
+    ./Dependencies/NecessaryFiles/Renderer.cpp
+    ./OptionalLibs/Button.hpp
+    ./OptionalLibs/Button.cpp
 )
 
 # 4. Link Libraries using Modern Targets

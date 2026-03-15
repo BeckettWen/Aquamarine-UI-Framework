@@ -1,6 +1,30 @@
 
 #include "ShaderHandling.hpp"
 
+ShaderHandler::ShaderHandler(){
+
+    shaderSource_midwayHolder = std::make_shared<std::stringstream>();
+    shaderSource_vertex = std::make_shared<std::string>();
+    shaderSource_fragment = std::make_shared<std::string>();
+
+    fileStream = std::make_shared<std::ifstream>();
+    
+    shaderFilePath = std::make_shared<std::string>();
+    (*shaderFilePath) = std::string(SHADER_PATH) + "Dependencies/Shaders/";
+
+    std::cout<<"Object Creation successful\n";
+}
+
+ShaderHandler::~ShaderHandler(){
+    glDetachShader(shaderID_Program, shaderID_vertex);
+    glDetachShader(shaderID_Program, shaderID_Fragment);
+
+    glDeleteShader(shaderID_vertex);
+    glDeleteShader(shaderID_Fragment);
+
+    std::cout<<"Object Destruction Successful\n";
+}
+
 std::ostream& operator<<(std::ostream& stream, std::vector<char>& errorMessage){
     for (const char character : errorMessage){
        stream << character; 
@@ -8,50 +32,49 @@ std::ostream& operator<<(std::ostream& stream, std::vector<char>& errorMessage){
     return stream;
 }
 
-ShaderHandler::ShaderHandler() :shaderID_Fragment(0), shaderID_vertex(0) {
-
-    shaderSource_midwayHolder = std::make_unique<std::stringstream>();
-    shaderSource_vertex = std::make_shared<std::string>();
-    shaderSource_fragment = std::make_shared<std::string>();
-
-    fileStream = std::make_unique<std::ifstream>();
-    
-    shaderFilePath = std::make_shared<std::string>(
-        static_cast<std::string>(SHADER_PATH) + "Dependencies/Shaders"
-    );
-}
-
-ShaderHandler::~ShaderHandler(){}
-
 void ShaderHandler::CompileAndAttachShader(){
     shaderID_vertex = glCreateShader(GL_VERTEX_SHADER);
     shaderID_Fragment = glCreateShader(GL_FRAGMENT_SHADER);
 
+    std::string shaderPath_vertex, shaderPath_Fragment;
+    shaderPath_vertex = std::string((*shaderFilePath)) + "vertexShader.glsl";
+    shaderPath_Fragment = std::string((*shaderFilePath)) + "fragmentShader.glsl";
+
     int result = GL_FALSE;
     int infolength;
 
-    (*fileStream).clear();
-    (*fileStream).open((*shaderFilePath)+"vertexShader.glsl", std::ios::in);
+    (*fileStream).open(shaderPath_vertex, std::ios::in);
 
     if((*fileStream).is_open()){
         (*shaderSource_midwayHolder) << (*fileStream).rdbuf();
         *shaderSource_vertex = (*shaderSource_midwayHolder).str();
-        (*shaderSource_midwayHolder).clear();
+        (*shaderSource_midwayHolder).str("");
         (*fileStream).close();
     }
     else{ std::cerr<<"Shader File Not Opened (vertex)\n"; }
-    (*fileStream).clear();
 
     char const * shaderVertexString = (*shaderSource_vertex).c_str();
     glShaderSource(shaderID_vertex, 1, &shaderVertexString, NULL);
     glCompileShader(shaderID_vertex);
 
-    (*fileStream).open((*shaderFilePath)+"fragmentShader.glsl", std::ios::in);
+    glGetShaderiv(shaderID_vertex, GL_COMPILE_STATUS, &result);
+    glGetShaderiv(shaderID_vertex, GL_INFO_LOG_LENGTH, &infolength);
+    if(infolength > 0){
+        std::shared_ptr<std::vector<char>> infolog = std::make_shared<std::vector<char>>();
+        (*infolog).resize(infolength+1);
+        glGetShaderInfoLog(shaderID_vertex, (*infolog).size(), NULL, (*infolog).data());
+        std::cout<<"shader vertex Compilation Error:"<<std::string((*infolog).begin(), (*infolog).end());
+    }
+
+    result = GL_FALSE;
+    infolength = 0;
+
+    (*fileStream).open(shaderPath_Fragment, std::ios::in);
 
     if((*fileStream).is_open()){
         (*shaderSource_midwayHolder) << (*fileStream).rdbuf();
         *shaderSource_fragment = (*shaderSource_midwayHolder).str();
-        (*shaderSource_midwayHolder).clear();
+        (*shaderSource_midwayHolder).str("");
         (*fileStream).close();
     }
     else{ std::cerr<<"Shader File Not Opened (fragment)\n";}
@@ -59,7 +82,35 @@ void ShaderHandler::CompileAndAttachShader(){
     char const * shaderFragmentString = (*shaderSource_fragment).c_str();
     glShaderSource(shaderID_Fragment, 1, &shaderFragmentString, NULL);
     glCompileShader(shaderID_Fragment);
+
+    glGetShaderiv(shaderID_Fragment, GL_COMPILE_STATUS, &result);
+    glGetShaderiv(shaderID_Fragment, GL_INFO_LOG_LENGTH, &infolength);
+    if(infolength > 0){
+        std::shared_ptr<std::vector<char>> infolog = std::make_shared<std::vector<char>>();
+        (*infolog).resize(infolength + 1);
+        glGetShaderInfoLog(shaderID_Fragment, (*infolog).size(), NULL,(*infolog).data());
+        std::cerr<<"shader Fragment compilation error:"<< std::string((*infolog).begin(), (*infolog).end());
+    }
+    result = GL_FALSE;
+    infolength = 0;
     
     shaderID_Program = glCreateProgram();
     glAttachShader(shaderID_Program, shaderID_vertex);
+    glAttachShader(shaderID_Program, shaderID_Fragment);
+
+    glLinkProgram(shaderID_Program);
+    glValidateProgram(shaderID_Program);
+
+    int linkResult = GL_FALSE;
+    glGetProgramiv(shaderID_Program, GL_LINK_STATUS, &linkResult);
+    glGetProgramiv(shaderID_Program, GL_INFO_LOG_LENGTH, &infolength);
+    if(infolength > 0){
+        std::shared_ptr<std::vector<char>> infoLog = std::make_shared<std::vector<char>>();
+        (*infoLog).resize(infolength + 1);
+        glGetProgramInfoLog(shaderID_Program, (*infoLog).size(), NULL, &(*infoLog)[0]);
+        std::cerr<<"shader Fragment compilation error:"<<(*infoLog);
+    }
+
+    glUseProgram(shaderID_Program);
+
 }

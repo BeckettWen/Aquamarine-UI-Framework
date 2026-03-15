@@ -29,3 +29,13 @@ Dependencies/Shaders/._vertexShader.glsl
 ._README.md
 .vscode/c_cpp_properties.json
 .vscode/settings.json
+._OptionalLibs
+.vscode/settings.json
+Dependencies/NecessaryFiles/._Preparation.cpp
+OptionalLibs/._Button.cpp
+.gitignore
+OptionalLibs/._Button.hpp
+Dependencies/NecessaryFiles/._Window.hpp
+Dependencies/NecessaryFiles/._Window.cpp
+Dependencies/NecessaryFiles/._Preparation.hpp
+.vscode/settings.json
