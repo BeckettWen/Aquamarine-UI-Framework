@@ -8,7 +8,6 @@
 #include <vector>
 #include <memory>
 
-#include "Renderer.hpp"
 
 class AquamarineWindow{
     protected:
@@ -16,8 +15,10 @@ class AquamarineWindow{
     std::shared_ptr<std::array<float,4>> WindowColor;
     
     AquamarineWindow();
+    public:
     ~AquamarineWindow();
 
+    public:
     void CreateDefaultWindow(std::string WindowTitle = "Default Window");
     void SetWindowColor(float color_r, float color_g, float color_b);
 

@@ -30,6 +30,7 @@ add_executable(${PROJECT_NAME}
     ./Dependencies/NecessaryFiles/Renderer.cpp
     ./OptionalLibs/Button.hpp
     ./OptionalLibs/Button.cpp
+    ./Dependencies/NecessaryFiles/general_include.hpp
 )
 
 # 4. Link Libraries using Modern Targets

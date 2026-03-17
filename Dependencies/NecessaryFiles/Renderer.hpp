@@ -8,12 +8,7 @@
 #include <memory>
 #include "Window.hpp"
 
-#if __has_include("../../OptionalLibs/Button.hpp")
-    #include "../../OptionalLibs/Button.hpp"
-    #define headerExists 1
-#else
-    #define headerExists 0
-#endif
+#include "general_include.hpp"
 
 class AquamarineRenderer{
     protected:
@@ -33,12 +28,14 @@ class AquamarineRenderer{
     unsigned int textureForButton;
 
     AquamarineRenderer();
+    public:
     ~AquamarineRenderer();
 
+    public:
     void InitialGLEW();
     void InitialGLFW();
 
-    void StartMainRenderLoop();
+    void StartMainRenderLoop(AquamarineWindow& mainWindowEntity);
 
     template<typename T> void AddWidget(T& WidgetObject);
     template<> void AddWidget<AquamarineButton>(AquamarineButton& buttonObject);

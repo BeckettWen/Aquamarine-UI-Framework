@@ -20,6 +20,14 @@ AquamarineButton::AquamarineButton():
 AquamarineButton::~AquamarineButton(){}
 
 void AquamarineButton::ChangeButtonSize( float width, float height ){
-    ( *ButtonSize )[0] = width;
-    (*ButtonSize)[1] = height;
+    ButtonSize = std::make_shared<std::array<float, 2>>(std::array<float,2>({width, height}));
+}
+
+void AquamarineButton::SetButtonPosition(float position_x, float position_y){
+    ButtonPosition = std::make_unique<std::array<float, 8>>(std::array<float, 8>({
+        position_x - 0.5*(*ButtonSize)[0], position_y + 0.5f*(*ButtonSize)[1],
+        position_x - 0.5*(*ButtonSize)[0], position_y - 0.5f*(*ButtonSize)[1],
+        position_x + 0.5*(*ButtonSize)[0], position_y - 0.5f*(*ButtonSize)[1],
+        position_x + 0.5*(*ButtonSize)[0], position_y + 0.5f*(*ButtonSize)[1]
+    }));
 }

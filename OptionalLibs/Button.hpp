@@ -21,6 +21,9 @@ class AquamarineButton{
     AquamarineButton();
     ~AquamarineButton();
 
+    void SetButtonPosition(float position_x, float position_y);
     void ChangeButtonSize( float width, float height );
     void AssignColorToButton( std::array<float, 4> userinputColor );
+
+    friend class AquamarineRenderer;
 };
