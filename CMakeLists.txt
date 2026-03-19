@@ -17,6 +17,8 @@ find_package(GLEW REQUIRED)
 # Some systems use 'glfw3', others use 'GLFW' or 'glfw'
 find_package(glfw3 CONFIG REQUIRED)
 
+find_package(Freetype REQUIRED)
+
 # 3. Add Executable
 # Replace main.cpp with your actual list of source files
 add_executable(${PROJECT_NAME} 
@@ -31,6 +33,8 @@ add_executable(${PROJECT_NAME}
     ./OptionalLibs/Button.hpp
     ./OptionalLibs/Button.cpp
     ./Dependencies/NecessaryFiles/general_include.hpp
+    ./Dependencies/NecessaryFiles/Text.hpp
+    ./Dependencies/NecessaryFiles/Text.cpp
 )
 
 # 4. Link Libraries using Modern Targets
@@ -39,6 +43,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     OpenGL::GL 
     GLEW::GLEW 
     glfw
+    Freetype::Freetype
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE 

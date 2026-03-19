@@ -18,6 +18,7 @@ class AquamarineButton{
 
     std::unique_ptr<std::array<float, 8>> ButtonPosition;
 
+    public:
     AquamarineButton();
     ~AquamarineButton();
 
