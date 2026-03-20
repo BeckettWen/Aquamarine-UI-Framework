@@ -6,6 +6,8 @@ ShaderHandler::ShaderHandler(){
     shaderSource_midwayHolder = std::make_shared<std::stringstream>();
     shaderSource_vertex = std::make_shared<std::string>();
     shaderSource_fragment = std::make_shared<std::string>();
+    shaderSource_textVertex = std::make_shared<std::string>();
+    shaderSource_textFragment = std::make_shared<std::string>();
 
     fileStream = std::make_shared<std::ifstream>();
     
@@ -22,7 +24,7 @@ ShaderHandler::~ShaderHandler(){
     glDeleteShader(shaderID_vertex);
     glDeleteShader(shaderID_Fragment);
 
-    std::cout<<"Object Destruction Successful\n";
+    std::cout<<"[ShaderHandler]: Object Destruction Successful\n";
 }
 
 std::ostream& operator<<(std::ostream& stream, std::vector<char>& errorMessage){
@@ -35,11 +37,15 @@ std::ostream& operator<<(std::ostream& stream, std::vector<char>& errorMessage){
 void ShaderHandler::CompileAndAttachShader(){
     shaderID_vertex = glCreateShader(GL_VERTEX_SHADER);
     shaderID_Fragment = glCreateShader(GL_FRAGMENT_SHADER);
+    shaderID_textVertex = glCreateShader(GL_VERTEX_SHADER);
     shaderID_textFragment = glCreateShader(GL_FRAGMENT_SHADER);
 
-    std::string shaderPath_vertex, shaderPath_Fragment, shaderPath_textFragment;
+    std::cout<<"[ShaderHandler]: shader ID creation successful\n";
+
+    std::string shaderPath_vertex, shaderPath_Fragment, shaderPath_textVertex,shaderPath_textFragment;
     shaderPath_vertex = std::string((*shaderFilePath)) + "vertexShader.glsl";
     shaderPath_Fragment = std::string((*shaderFilePath)) + "fragmentShader.glsl";
+    shaderPath_textVertex = std::string((*shaderFilePath)) + "textVertexShader.glsl";
     shaderPath_textFragment = std::string((*shaderFilePath)) + "textFragmentShader.glsl";
 
     int result = GL_FALSE;
@@ -68,6 +74,8 @@ void ShaderHandler::CompileAndAttachShader(){
         std::cout<<"shader vertex Compilation Error:"<<std::string((*infolog).begin(), (*infolog).end());
     }
 
+    std::cout<<"[ShaderHandler]: shader vertex Compilation successful\n";
+
     result = GL_FALSE;
     infolength = 0;
 
@@ -94,6 +102,33 @@ void ShaderHandler::CompileAndAttachShader(){
         std::cerr<<"shader Fragment compilation error:"<< std::string((*infolog).begin(), (*infolog).end());
     }
 
+    std::cout<<"[ShaderHandler]: shader Fragment Compilation successful\n";
+
+    result = GL_FALSE;
+    infolength = 0;
+
+    (*fileStream).open(shaderPath_textVertex, std::ios::in);
+    if((*fileStream).is_open()) {
+        (*shaderSource_midwayHolder) << (*fileStream).rdbuf();
+        (*shaderSource_textVertex) = (*shaderSource_midwayHolder).str();
+        (*shaderSource_midwayHolder).str("");
+        (*fileStream).close();
+    }
+    else{std::cerr<<"Shader File Not Opened (textVertex)\n";}
+
+    char const * shaderTextVertexString = (*shaderSource_textVertex).c_str();
+    glShaderSource(shaderID_textVertex, 1, &shaderTextVertexString, NULL);
+    glCompileShader(shaderID_textVertex);
+
+    glGetShaderiv(shaderID_textVertex, GL_COMPILE_STATUS, &result);
+    glGetShaderiv(shaderID_textVertex, GL_INFO_LOG_LENGTH, &infolength);
+    if(infolength > 0) {
+        std::shared_ptr<std::vector<char>> infolog = std::make_shared<std::vector<char>>();
+        (*infolog).resize(infolength + 1);
+        glGetShaderInfoLog(shaderID_textVertex, (*infolog).size(), NULL,(*infolog).data());
+        std::cerr<<"shader text vertex compilation error:"<<std::string((*infolog).begin(), (*infolog).end());
+    }
+
     result = GL_FALSE;
     infolength = 0;
 
@@ -118,13 +153,15 @@ void ShaderHandler::CompileAndAttachShader(){
         glGetShaderInfoLog(shaderID_textFragment, (*infolog).size(), NULL,(*infolog).data());
         std::cerr<<"shader Fragment compilation error:"<< std::string((*infolog).begin(), (*infolog).end());
     }
+
+    std::cout<<"[ShaderHandler]: shader text Fragment Compilation successful\n";
     
     shaderID_Program = glCreateProgram();
     glAttachShader(shaderID_Program, shaderID_vertex);
     glAttachShader(shaderID_Program, shaderID_Fragment);
 
     shaderID_text_Program = glCreateProgram();
-    glAttachShader(shaderID_text_Program, shaderID_vertex);
+    glAttachShader(shaderID_text_Program, shaderID_textVertex);
     glAttachShader(shaderID_text_Program, shaderID_textFragment);
 
     glLinkProgram(shaderID_Program);
@@ -132,6 +169,8 @@ void ShaderHandler::CompileAndAttachShader(){
 
     glLinkProgram(shaderID_text_Program);
     glValidateProgram(shaderID_text_Program);
+
+    std::cout<<"[ShaderHandler]: All shader link and validation successful\n";
 
     int linkResult = GL_FALSE;
     glGetProgramiv(shaderID_Program, GL_LINK_STATUS, &linkResult);
@@ -153,7 +192,21 @@ void ShaderHandler::CompileAndAttachShader(){
         glGetProgramInfoLog(shaderID_text_Program, (*infoLog).size(), NULL, &(*infoLog)[0]);
         std::cerr<<"shader Fragment compilation error:"<<(*infoLog);
     }
+
+    std::cout<<"[ShaderHandler]: All Shader Processing Succesful\n";
+
+    glUseProgram(shaderID_text_Program);
+    glUniform1i(glGetUniformLocation(shaderID_Program, "text"), 2);
+
+    glUseProgram(shaderID_Program);
 }
 
-void ShaderHandler::UseTraditionalShaderProgram(){ glUseProgram(shaderID_Program);}
-void ShaderHandler::UseTextShaderProgram(){ glUseProgram(shaderID_text_Program);}
+void ShaderHandler::UseTraditionalShaderProgram() {
+    glUseProgram(shaderID_Program);
+    //this line needs to be deannotated in the later process of adding textures to the button
+    //glUniform1i(glGetUniformLocation(shaderID_Program, "text"), 0);
+}
+void ShaderHandler::UseTextShaderProgram() {
+    glUseProgram(shaderID_text_Program);
+    glUniform1i(glGetUniformLocation(shaderID_text_Program, "text"), 2);
+}

@@ -4,10 +4,14 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include <iostream>
 #include <memory>
-#include "Window.hpp"
 
+#include "Text.hpp"
+#include "Window.hpp"
 #include "general_include.hpp"
 
 class AquamarineRenderer{
@@ -15,11 +19,14 @@ class AquamarineRenderer{
 
     bool InitializationResult = true;
     std::shared_ptr<AquamarineWindow> windowEntity_Renderer;
+    std::unique_ptr<std::vector<std::shared_ptr<AquamarineText>>> textEntity_Renderer;
 
     std::unique_ptr<std::vector<float>> BatchRenderingArray;
     std::unique_ptr<std::vector<unsigned int>> BatchRenderingIndices;
 
     std::unique_ptr<std::vector<float>> BatchRenderingArray_color;
+
+    std::unique_ptr<ShaderHandler> shaderHandlerEntity_Renderer;
 
     unsigned int vertexBufferObject;
     unsigned int vertexArrayObject;

@@ -8,6 +8,8 @@
 #include <vector>
 #include <memory>
 
+#include "../Dependencies/NecessaryFiles/Text.hpp"
+
 class AquamarineButton{
     protected:
     std::shared_ptr<std::array<float, 4>> ButtonColor;
@@ -17,6 +19,8 @@ class AquamarineButton{
     unsigned int AquamarineUI_Button_vertexArrayObject;
 
     std::unique_ptr<std::array<float, 8>> ButtonPosition;
+
+    std::shared_ptr<AquamarineText> ButtonText;
 
     public:
     AquamarineButton();

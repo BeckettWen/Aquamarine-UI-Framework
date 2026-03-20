@@ -5,6 +5,13 @@ AquamarineRenderer::AquamarineRenderer(){
     BatchRenderingArray = std::make_unique<std::vector<float>>();
     BatchRenderingIndices = std::make_unique<std::vector<unsigned int>>();
     BatchRenderingArray_color = std::make_unique<std::vector<float>>();
+
+    //this line below is also the test code and should be removed in the later development
+    textEntity_Renderer = std::make_unique<std::vector<std::shared_ptr<AquamarineText>>>();
+    (*textEntity_Renderer).clear();
+    (*textEntity_Renderer).emplace_back(std::make_shared<AquamarineText>());
+
+    shaderHandlerEntity_Renderer = std::make_unique<ShaderHandler>();
 }
 AquamarineRenderer::~AquamarineRenderer(){}
 
@@ -35,7 +42,7 @@ void AquamarineRenderer::StartMainRenderLoop(AquamarineWindow& mainWindowEntity)
     glBindVertexArray(vertexArrayObject);
 
     glGenBuffers(1, &vertexBufferObject);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexArrayObject);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
     glBufferData(GL_ARRAY_BUFFER, (*BatchRenderingArray).size() * sizeof(float), (*BatchRenderingArray).data(), GL_STATIC_DRAW);
 
     glGenBuffers(1, &vertexIndiciesObject);
@@ -57,13 +64,32 @@ void AquamarineRenderer::StartMainRenderLoop(AquamarineWindow& mainWindowEntity)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameterf(GL_TEXTURE_2D ,GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    //don't use this line until the texture is set, or the program will throw the segmentation fault
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_FLOAT, (*BatchRenderingArray_color).data());
-
-    glGenerateMipmap(GL_TEXTURE_2D);
+    if (!BatchRenderingArray_color->empty()) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_FLOAT, BatchRenderingArray_color->data());
+    } else {
+        // Fallback: Create a single white pixel so the shader has SOMETHING to read
+        float whitePixel[] = { 1.0f, 1.0f, 1.0f };
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_FLOAT, whitePixel);
+    }
+    //glGenerateMipmap(GL_TEXTURE_2D);
     //here is the end of the texture input of the button or the triangle
 
     windowEntity_Renderer = std::make_shared<AquamarineWindow>(mainWindowEntity);
+
+    (*shaderHandlerEntity_Renderer).CompileAndAttachShader();
+
+    //basically here is the source of the segmentation fault
+    for(std::shared_ptr<AquamarineText> item: (*textEntity_Renderer)){
+        (*item).SetupText(std::string(FontPath));
+    }
+
+    (*shaderHandlerEntity_Renderer).UseTextShaderProgram();
+    //this is the orthographic projection matrix of the text, fot the button, you need to create another model projection matrix
+    float AquamarineWindowWidth = 800;
+    float AquamarineWindowHeight = 600;
+    glm::mat4 orthoGraphic = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f);
+    unsigned int AquamarineLocation = glGetUniformLocation((*shaderHandlerEntity_Renderer).shaderID_text_Program, "OrthographicProjection");
+    glUniformMatrix4fv(AquamarineLocation, 1, 0, &orthoGraphic[0][0]);
 
     while(!glfwWindowShouldClose((*(windowEntity_Renderer->windowEntity)))){
         //render the color onto the screen with the default black color
@@ -71,6 +97,13 @@ void AquamarineRenderer::StartMainRenderLoop(AquamarineWindow& mainWindowEntity)
             (*(windowEntity_Renderer->WindowColor))[1], 
             (*(windowEntity_Renderer->WindowColor))[2], 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
+
+            //this is the test code of the text rendering, should be removed in the later process
+            (*shaderHandlerEntity_Renderer).UseTextShaderProgram();
+            for(std::shared_ptr<AquamarineText> item: (*textEntity_Renderer)){
+                (*item).RenderText("Hello World", 300.0f ,300.0f, 1.0f, glm::vec3(0.0f, 0.0f, 0.0f), (*shaderHandlerEntity_Renderer));
+            }
+            (*shaderHandlerEntity_Renderer).UseTraditionalShaderProgram();
 
         glfwPollEvents();
         glfwSwapBuffers((*(windowEntity_Renderer->windowEntity)));
@@ -93,4 +126,6 @@ void AquamarineRenderer::AddWidget<AquamarineButton>(AquamarineButton& buttonWid
     else{
         std::cerr<<"You need to include the button header file First";
     }
+
+    (*textEntity_Renderer).emplace_back(buttonWidget.ButtonText);
 }

@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
 project(AquamarineUI VERSION 0.1 LANGUAGES CXX)
 
+set(CMAKE_CONFIGURE_DEPENDS "CMakeLists.txt")
+
 # 1. Set C++ Standard
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -48,6 +50,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE 
     SHADER_PATH="${CMAKE_CURRENT_SOURCE_DIR}/"
+    FontPath="${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/fonts/HelveticaNeueUltraLight.ttf"
 )
 
 # 5. Platform-Specific Fixes (For macOS Frameworks)
