@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <memory>
+#include <thread>
 
 #include "Text.hpp"
 #include "Window.hpp"
@@ -25,12 +26,15 @@ class AquamarineRenderer{
     std::unique_ptr<std::vector<unsigned int>> BatchRenderingIndices;
 
     std::unique_ptr<std::vector<float>> BatchRenderingArray_color;
-
+    std::unique_ptr<std::vector<float>> BatchRenderingArray_Color_UV;
     std::unique_ptr<ShaderHandler> shaderHandlerEntity_Renderer;
+
+    std::shared_ptr<std::map<AquamarineText*, std::string>> buttonTextMap;
 
     unsigned int vertexBufferObject;
     unsigned int vertexArrayObject;
     unsigned int vertexIndiciesObject;
+    unsigned int textureForButton_ColorBuffer;
 
     unsigned int textureForButton;
 

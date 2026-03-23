@@ -196,13 +196,14 @@ void ShaderHandler::CompileAndAttachShader(){
     std::cout<<"[ShaderHandler]: All Shader Processing Succesful\n";
 
     glUseProgram(shaderID_text_Program);
-    glUniform1i(glGetUniformLocation(shaderID_Program, "text"), 2);
+    glUniform1i(glGetUniformLocation(shaderID_text_Program, "text"), 2);
 
-    glUseProgram(shaderID_Program);
+    //glUseProgram(shaderID_Program);
 }
 
 void ShaderHandler::UseTraditionalShaderProgram() {
     glUseProgram(shaderID_Program);
+    glUniform1i(glGetUniformLocation(shaderID_Program, "buttonTextureSampler"), 0);
     //this line needs to be deannotated in the later process of adding textures to the button
     //glUniform1i(glGetUniformLocation(shaderID_Program, "text"), 0);
 }

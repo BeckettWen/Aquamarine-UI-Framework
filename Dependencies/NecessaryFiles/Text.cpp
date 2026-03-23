@@ -50,6 +50,7 @@ void AquamarineText::SetupText(std::string fontPath){
             glm::ivec2(fontFace->glyph->bitmap_left, fontFace->glyph->bitmap_top),
             static_cast<unsigned int>(fontFace->glyph->advance.x)
         };
+        //this line is where the bug happens
         textCharacters.insert(std::pair<char, AquamarineTextCharacter>(chara, character));
     }
     
