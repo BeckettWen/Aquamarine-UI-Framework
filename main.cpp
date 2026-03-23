@@ -14,11 +14,19 @@ int main(){
     (*Renderer).InitialGLEW();
 
     std::shared_ptr<AquamarineButton> button = std::make_shared<AquamarineButton>();
+    (*button).ChangeButtonSize(200.0f, 400.0f);
     (*button).SetButtonPosition(300.0f, 300.0f);
-    (*button).SetButtonText("This is a button");
-    (*button).AssignColorToButton(std::array<float, 4>({1.0f, 0.0f, 0.0f, 1.0f}));
+    (*button).SetButtonText("Button1");
+    (*button).AssignColorToButton(std::array<float, 4>({0.0f, 0.0f, 0.0f, 1.0f}));
+
+    std::shared_ptr<AquamarineButton> button2 = std::make_shared<AquamarineButton>();
+    (*button2).ChangeButtonSize(100.0f, 100.0f);
+    (*button2).SetButtonPosition(500.0f, 500.0f);
+    (*button2).SetButtonText("Button2");
+    (*button2).AssignColorToButton(std::array<float, 4>({0.0f, 0.0f, 0.0f, 1.0f}));
 
     (*Renderer).AddWidget(*button);
+    (*Renderer).AddWidget(*button2);
 
     (*mainWindow).SetWindowColor(1.0f, 1.0f, 1.0f);
    (*Renderer).StartMainRenderLoop((*mainWindow));

@@ -21,7 +21,7 @@ void AquamarineButton::SetButtonPosition(float position_x, float position_y){
     actualAnchorPositionY = position_y;
 
     ButtonPosition = std::make_unique<std::array<float, 8>>(std::array<float, 8>({
-        position_x - 0.5f*(*ButtonSize)[0], position_y + 0.5f*(*ButtonSize)[1],
+        (position_x - 0.5f*(*ButtonSize)[0]), position_y + 0.5f*(*ButtonSize)[1],
         position_x - 0.5f*(*ButtonSize)[0], position_y - 0.5f*(*ButtonSize)[1],
         position_x + 0.5f*(*ButtonSize)[0], position_y - 0.5f*(*ButtonSize)[1],
         position_x + 0.5f*(*ButtonSize)[0], position_y + 0.5f*(*ButtonSize)[1]

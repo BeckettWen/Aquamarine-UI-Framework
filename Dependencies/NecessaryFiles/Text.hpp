@@ -25,7 +25,7 @@ class AquamarineText{
     std::map<char, AquamarineTextCharacter> textCharacters;
     unsigned int textVAO, textVBO;
     std::weak_ptr<ShaderHandler> shaderHandler_Pointer;
-    float textXSize, textYSize;//this defines the width and height of the text for the later definition of the anchor point
+    float textXSize = 0.0f, textYSize = 0.0f;//this defines the width and height of the text for the later definition of the anchor point
 
     public:
     AquamarineText();

@@ -52,6 +52,9 @@ void AquamarineText::SetupText(std::string fontPath){
         };
         //this line is where the bug happens
         textCharacters.insert(std::pair<char, AquamarineTextCharacter>(chara, character));
+
+        textXSize += character.text_Size.x;
+        textYSize += character.text_Size.y;
     }
     
     FT_Done_Face(fontFace);

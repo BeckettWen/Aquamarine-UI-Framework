@@ -1,6 +1,6 @@
 # Aquamarine-UI-Experimental
-**This UI Framework is still in Experimental Phase and still in Construction**
-
+**This UI Framework is still in Experimental Phase and still in Construction**  
+*Alpha 1 (Coral) is set to be released in Mid-April*
 ***
 
 **Introduction:**  

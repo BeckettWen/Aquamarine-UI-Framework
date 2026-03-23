@@ -128,6 +128,12 @@ void AquamarineRenderer::StartMainRenderLoop(AquamarineWindow& mainWindowEntity)
             glClear(GL_COLOR_BUFFER_BIT);
 
         //here will be the button drawing process, using the indices to draw that triangle
+        (*shaderHandlerEntity_Renderer).UseTraditionalShaderProgram();
+        //this line draws all the button outline with the shape
+        glBindVertexArray(vertexArrayObject);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textureForButton);
+        glDrawElements(GL_TRIANGLES, (*BatchRenderingIndices).size(), GL_UNSIGNED_INT, 0);
 
         //this is the test code of the text rendering, should be removed in the later process
         //for the changing of the color, you just need a vec3 of the color array to do that
@@ -136,17 +142,10 @@ void AquamarineRenderer::StartMainRenderLoop(AquamarineWindow& mainWindowEntity)
             auto it = (*buttonTextMap).find(item.get());
             if(it != (*buttonTextMap).end()) {
                 foundedText = (*it).second;
-                (*item).RenderText(foundedText, 300.0f ,300.0f, 1.0f, glm::vec3(0.0f, 0.0f, 1.0f), (*shaderHandlerEntity_Renderer));
+                (*item).RenderText(foundedText, 300.0f ,300.0f, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f), (*shaderHandlerEntity_Renderer));
             }
             else{continue;}
         }
-        (*shaderHandlerEntity_Renderer).UseTraditionalShaderProgram();
-
-        //this line draws all the button outline with the shape
-        glBindVertexArray(vertexArrayObject);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textureForButton);
-        glDrawElements(GL_TRIANGLES, (*BatchRenderingIndices).size(), GL_UNSIGNED_INT, 0);
 
         glfwPollEvents();
         glfwSwapBuffers((*(windowEntity_Renderer->windowEntity)));
@@ -183,7 +182,9 @@ template<> void AquamarineRenderer::AddWidget<AquamarineButton>(AquamarineButton
         (*BatchRenderingArray_Color_UV).emplace_back(item);
     }
 
+    unsigned int autoIncrement = (*BatchRenderingArray).size()/2 - 4;
+
     for (unsigned int item : (*buttonWidget.ButtonPosition_Indicies)) {
-        (*BatchRenderingIndices).emplace_back(item);
+        (*BatchRenderingIndices).emplace_back(item + autoIncrement);
     }
 }
