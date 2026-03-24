@@ -23,6 +23,8 @@ class AquamarineButton{
     std::unique_ptr<std::array<float, 8>> ButtonPosition;
     std::unique_ptr<std::array<unsigned int, 6>> ButtonPosition_Indicies;
 
+    std::shared_ptr<std::array<float, 4>> ButtonTextureLayer;
+
     std::shared_ptr<AquamarineText> ButtonText;
 
     std::string InternalText;

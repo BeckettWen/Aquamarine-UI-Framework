@@ -7,6 +7,8 @@ AquamarineButton::AquamarineButton():
     ButtonUVCoords = std::make_shared<std::array<float, 8>>(std::array<float, 8>());
     ButtonPosition = std::make_unique<std::array<float, 8>>(std::array<float, 8>());
     ButtonPosition_Indicies = std::make_unique<std::array<unsigned int, 6>>(std::array<unsigned int, 6>({0,1,2,0,3,2}));
+
+    ButtonTextureLayer = std::make_shared<std::array<float, 4>>(std::array<float, 4>({0.0f, 0.0f, 0.0f, 0.0f}));
     }
 
 AquamarineButton::~AquamarineButton(){}

@@ -20,7 +20,7 @@ void AquamarineText::SetupText(std::string fontPath){
         return; // Stop here so we don't crash in the loop below
     }
 
-    FT_Set_Pixel_Sizes(fontFace, 0, 64);
+    FT_Set_Pixel_Sizes(fontFace, 0, 256);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     

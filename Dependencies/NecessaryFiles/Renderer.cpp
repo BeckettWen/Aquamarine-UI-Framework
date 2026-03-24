@@ -15,8 +15,14 @@ AquamarineRenderer::AquamarineRenderer(){
     buttonTextMap = std::make_shared<std::map<AquamarineText*, std::string>>(std::map<AquamarineText*, std::string>());
 
     shaderHandlerEntity_Renderer = std::make_unique<ShaderHandler>();
-
     BatchRenderingArray_Color_UV = std::make_unique<std::vector<float>>(std::vector<float>());
+
+    BatchRenderingArray_TextureIndex = std::make_unique<std::vector<float>>(std::vector<float>());
+    buttonTextScaleRatioMap = std::make_shared<std::map<AquamarineText*, float>>(std::map<AquamarineText*, float>());
+
+    textPositionMap = std::make_shared<std::map<AquamarineText*, std::array<float, 2>>>(std::map<AquamarineText*, std::array<float, 2>>());
+
+    textSizeMap = std::make_shared<std::map<AquamarineText*, std::array<float,2>>>(std::map<AquamarineText*, std::array<float, 2>>());
 }
 AquamarineRenderer::~AquamarineRenderer(){}
 
@@ -59,36 +65,40 @@ void AquamarineRenderer::StartMainRenderLoop(AquamarineWindow& mainWindowEntity)
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0 );
     //here is where the main before-render process ends
 
-    //this is the generation of the array buffer of the button color
-    glGenBuffers(1, &textureForButton_ColorBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, textureForButton_ColorBuffer);
-    glBufferData(GL_ARRAY_BUFFER, (*BatchRenderingArray_Color_UV).size() * sizeof(float),
-            (*BatchRenderingArray_Color_UV).data(), GL_STATIC_DRAW);
+    //here is where the rendering process of the batch rendering process, this process is where the batch rendering texture happens
+    glGenBuffers(1, &textureIndexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, textureIndexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, (*BatchRenderingArray_TextureIndex).size() * sizeof(float),
+        (*BatchRenderingArray_TextureIndex).data(), GL_STATIC_DRAW);
 
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0 );
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, 0 );
 
-    //here is where the batch rendering texture will be in
+    int numOfButtons = currenttexturelayer;
+    glGenTextures(1, &textArrayObject);
     glActiveTexture(GL_TEXTURE0);
-    glGenTextures(1, &textureForButton);
-    glBindTexture(GL_TEXTURE_2D ,textureForButton);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, textArrayObject);
 
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameterf(GL_TEXTURE_2D ,GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA,
+    1, 1,        // width, height (1x1 solid color per button)
+    numOfButtons,  // depth = number of buttons
+    0, GL_RGBA, GL_FLOAT, nullptr);
 
-    if (!BatchRenderingArray_color->empty()) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_FLOAT, BatchRenderingArray_color->data());
-    } else {
-        // Fallback: Create a single white pixel so the shader has SOMETHING to read
-        float whitePixel[] = { 0.0f, 0.0f, 0.0f , 1.0f};
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_FLOAT, whitePixel);
+    // Upload each button's color to its own layer
+    for(int i = 0; i < numOfButtons; i++){
+        float* colorData = (*BatchRenderingArray_color).data() + (i * 4); // 4 floats per button
+        glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0,
+            0, 0, i,   // x, y, layer index
+            1, 1, 1,   // width, height, depth
+            GL_RGBA, GL_FLOAT, colorData);
     }
-    //glGenerateMipmap(GL_TEXTURE_2D);
-    //here is the end of the texture input of the button or the triangle
+
+    //these generation of the single texture will be abandoned in the later process
 
     windowEntity_Renderer = std::make_shared<AquamarineWindow>(mainWindowEntity);
 
@@ -106,6 +116,23 @@ void AquamarineRenderer::StartMainRenderLoop(AquamarineWindow& mainWindowEntity)
     //basically here is the source of the segmentation fault
     for(std::shared_ptr<AquamarineText> item: (*textEntity_Renderer)){
         (*item).SetupText(std::string(FontPath));
+
+
+        auto textIt = (*buttonTextMap).find(item.get());
+        auto scaleIt = (*buttonTextScaleRatioMap).find(item.get());
+        if(textIt != (*buttonTextMap).end() && scaleIt != (*buttonTextScaleRatioMap).end()){
+            float labelWidth = 0.0f, labelHeight = 0.0f;
+            float scaleRatio = scaleIt->second;
+            for(char c : textIt->second){
+                auto charIt = (*item).textCharacters.find(c);
+                if(charIt != (*item).textCharacters.end()){
+                    labelWidth += (charIt->second.text_advance >> 6) * scaleRatio;
+                    labelHeight = std::max(labelHeight, (float)charIt->second.text_Bearing.y * scaleRatio);
+                }
+            }
+            (*textSizeMap)[item.get()] = std::array<float, 2>({labelWidth, labelHeight});
+        }
+
     }
 
     (*shaderHandlerEntity_Renderer).UseTextShaderProgram();
@@ -120,6 +147,8 @@ void AquamarineRenderer::StartMainRenderLoop(AquamarineWindow& mainWindowEntity)
     int renderCount = std::pow(2, -1)*(*BatchRenderingArray).size();
     std::string foundedText = "";
 
+    float actualStartPositionX, actualStartPositionY;
+
     while(!glfwWindowShouldClose((*(windowEntity_Renderer->windowEntity)))){
         //render the color onto the screen with the default black color
         glClearColor((*(windowEntity_Renderer->WindowColor))[0], 
@@ -132,7 +161,7 @@ void AquamarineRenderer::StartMainRenderLoop(AquamarineWindow& mainWindowEntity)
         //this line draws all the button outline with the shape
         glBindVertexArray(vertexArrayObject);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textureForButton);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, textArrayObject);
         glDrawElements(GL_TRIANGLES, (*BatchRenderingIndices).size(), GL_UNSIGNED_INT, 0);
 
         //this is the test code of the text rendering, should be removed in the later process
@@ -140,9 +169,14 @@ void AquamarineRenderer::StartMainRenderLoop(AquamarineWindow& mainWindowEntity)
         (*shaderHandlerEntity_Renderer).UseTextShaderProgram();
         for(std::shared_ptr<AquamarineText> item: (*textEntity_Renderer)){
             auto it = (*buttonTextMap).find(item.get());
-            if(it != (*buttonTextMap).end()) {
+            auto it2 = (*textPositionMap).find(item.get());
+            auto it3 = (*buttonTextScaleRatioMap).find(item.get());
+            auto it4 = (*textSizeMap).find(item.get());
+            if(it != (*buttonTextMap).end() && it2 != (*textPositionMap).end() && it3 != (*buttonTextScaleRatioMap).end() && it4 != (*textPositionMap).end()) {
+                actualStartPositionX = it2->second[0] - 0.5f*(it4->second[0]);
+                actualStartPositionY = it2->second[1] - 0.5f*(it4->second[1]);
                 foundedText = (*it).second;
-                (*item).RenderText(foundedText, 300.0f ,300.0f, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f), (*shaderHandlerEntity_Renderer));
+                (*item).RenderText(foundedText, actualStartPositionX ,actualStartPositionY, it3->second, glm::vec3(1.0f, 1.0f, 1.0f), (*shaderHandlerEntity_Renderer));
             }
             else{continue;}
         }
@@ -173,6 +207,7 @@ template<> void AquamarineRenderer::AddWidget<AquamarineButton>(AquamarineButton
     //so many things that happens now so i will put the optimization behind, at least after the alpha 1 is released
     (*textEntity_Renderer).emplace_back(buttonWidget.ButtonText);
     (*buttonTextMap).insert({buttonWidget.ButtonText.get(), buttonWidget.InternalText});
+    (*textPositionMap).insert({buttonWidget.ButtonText.get(), std::array<float, 2>({buttonWidget.actualAnchorPositionX, buttonWidget.actualAnchorPositionY})});
 
     for (float item : (*buttonWidget.ButtonColor)) {
         (*BatchRenderingArray_color).emplace_back(item);
@@ -187,4 +222,34 @@ template<> void AquamarineRenderer::AddWidget<AquamarineButton>(AquamarineButton
     for (unsigned int item : (*buttonWidget.ButtonPosition_Indicies)) {
         (*BatchRenderingIndices).emplace_back(item + autoIncrement);
     }
+
+    //here adds the texture layer of the different buttons
+    float layerIndex = static_cast<float>(currenttexturelayer);
+    (*buttonWidget.ButtonTextureLayer) = std::array<float, 4>({
+        layerIndex, layerIndex, layerIndex, layerIndex
+    });
+    currenttexturelayer++;
+
+    for(float item : (*buttonWidget.ButtonTextureLayer)){
+        (*BatchRenderingArray_TextureIndex).emplace_back(item);
+    }
+    //here is the texture layer process ends
+
+    //here calculates the scale ratio of the text inside the button
+    //here use the standard 800 600 config of the window, and you should later change this to the unified window width and height
+    float scaleRatio = std::min(std::pow(800.0f, -1)*(*buttonWidget.ButtonSize)[0], std::pow(600.0f, -1)*(*buttonWidget.ButtonSize)[1]);
+    (*buttonTextScaleRatioMap).insert({buttonWidget.ButtonText.get(), scaleRatio});
+
+    //here stores the button size for the center layout of the text in the button
+    float labelWidth = 0.0f;
+    float labelHeight = 0.0f;
+    for(char c : buttonWidget.InternalText){
+        auto charIt = (*buttonWidget.ButtonText).textCharacters.find(c);
+        if(charIt != (*buttonWidget.ButtonText).textCharacters.end()){
+            labelWidth  += (charIt->second.text_advance >> 6) * scaleRatio;
+            labelHeight  = std::max(labelHeight, (float)charIt->second.text_Bearing.y * scaleRatio);
+        }
+    }
+    (*textSizeMap).insert({buttonWidget.ButtonText.get(),
+        std::array<float, 2>({labelWidth, labelHeight})});
 }
