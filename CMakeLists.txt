@@ -37,6 +37,8 @@ add_executable(${PROJECT_NAME}
     ./Dependencies/NecessaryFiles/general_include.hpp
     ./Dependencies/NecessaryFiles/Text.hpp
     ./Dependencies/NecessaryFiles/Text.cpp
+        ./Dependencies/NecessaryFiles/LogicHandler.hpp
+        ./Dependencies/NecessaryFiles/LogicHandler.cpp
 )
 
 # 4. Link Libraries using Modern Targets

@@ -9,6 +9,9 @@ AquamarineButton::AquamarineButton():
     ButtonPosition_Indicies = std::make_unique<std::array<unsigned int, 6>>(std::array<unsigned int, 6>({0,1,2,0,3,2}));
 
     ButtonTextureLayer = std::make_shared<std::array<float, 4>>(std::array<float, 4>({0.0f, 0.0f, 0.0f, 0.0f}));
+
+    ButtonResponseFunctions = std::make_shared<std::vector<std::function<void()>>>(std::vector<std::function<void()>>());
+    ButtonResponseFunctionsMap = std::make_shared<std::map<std::function<void()>*, int>>(std::map<std::function<void()>*, int>());
     }
 
 AquamarineButton::~AquamarineButton(){}
@@ -38,4 +41,12 @@ void AquamarineButton::SetButtonText(std::string text) {
 void AquamarineButton::AssignColorToButton(std::array<float, 4> userinputColor) {
     (*ButtonColor) = userinputColor;
     (*ButtonUVCoords) = std::array<float, 8>({0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f});
+}
+
+
+
+void AquamarineButton::SetButtonResponseFunction(std::function<void()> responseFunction, triggertype responseCondition, GLFWwindow* windowEntity) {
+    (*ButtonResponseFunctions).emplace_back(responseFunction);
+    //(*ButtonResponseFunctionsMap).insert({&responseFunction, responseCondition});
+    //here is the end of the button function callback
 }

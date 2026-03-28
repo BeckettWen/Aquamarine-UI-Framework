@@ -10,8 +10,9 @@
 
 
 class AquamarineWindow{
-    protected:
+    public:
     std::shared_ptr<GLFWwindow*> windowEntity;
+protected:
     std::shared_ptr<std::array<float,4>> WindowColor;
     
     AquamarineWindow();

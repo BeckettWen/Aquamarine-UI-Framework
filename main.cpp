@@ -18,12 +18,15 @@ int main(){
     (*button).SetButtonPosition(300.0f, 300.0f);
     (*button).SetButtonText("Button1");
     (*button).AssignColorToButton(std::array<float, 4>({0.0f, 0.0f, 0.0f, 1.0f}));
+    (*button).SetButtonResponseFunction([](){std::cout<<"button1 clicked\n";}, AquamarineButton::triggertype::button_clicked, *(*mainWindow).windowEntity.get());
 
     std::shared_ptr<AquamarineButton> button2 = std::make_shared<AquamarineButton>();
     (*button2).ChangeButtonSize(200.0f, 150.0f);
     (*button2).SetButtonPosition(500.0f, 500.0f);
     (*button2).SetButtonText("Button2");
     (*button2).AssignColorToButton(std::array<float, 4>({0.0f, 0.0f, 1.0f, 1.0f}));
+    (*button2).SetButtonResponseFunction([](){std::cout<<"button2 clicked\n";}, AquamarineButton::triggertype::button_clicked, *(*mainWindow).windowEntity.get());
+
 
     (*Renderer).AddWidget(*button);
     (*Renderer).AddWidget(*button2);

@@ -35,10 +35,21 @@ class AquamarineRenderer{
     std::shared_ptr<std::map<AquamarineText*, std::array<float, 2>>> textSizeMap;
     std::shared_ptr<std::map<AquamarineText*, std::array<float, 2>>> textPositionMap;
 
+    std::shared_ptr<std::vector<AquamarineButton*>> buttonWidgetarray;
+
+    std::shared_ptr<std::vector<AquamarineText>> seperateText;
+
     unsigned int vertexBufferObject;
     unsigned int vertexArrayObject;
     unsigned int vertexIndiciesObject;
     unsigned int textureForButton_ColorBuffer;
+
+    //this is where the border of the button is drawn
+    unsigned int borderVertexArrayObject;
+    unsigned int borderVertexBufferObject;
+    unsigned int borderVertexPositionIndices;
+    std::shared_ptr<std::vector<float>> borderVertexPosition;
+    std::shared_ptr<std::vector<unsigned int>> borderVertexIndices;
 
     //these are the variables that needed in the process of the batch rendering of the textures
     unsigned int currenttexturelayer = 0;

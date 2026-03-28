@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+#include <functional>
 
 #include "../Dependencies/NecessaryFiles/Text.hpp"
 
@@ -27,10 +28,20 @@ class AquamarineButton{
 
     std::shared_ptr<AquamarineText> ButtonText;
 
+    std::shared_ptr<std::vector<std::function<void()>>> ButtonResponseFunctions;
+    std::shared_ptr<std::map<std::function<void()>*, int>> ButtonResponseFunctionsMap;
+
     std::string InternalText;
     float actualAnchorPositionX, actualAnchorPositionY;
 
+    float borderThickness = 0.0f;
+
+
     public:
+    enum triggertype : int{
+        button_clicked = GLFW_PRESS, button_long_pressed
+    };
+
     AquamarineButton();
     ~AquamarineButton();
 
@@ -38,6 +49,8 @@ class AquamarineButton{
     void ChangeButtonSize( float width, float height );
     void AssignColorToButton( std::array<float, 4> userinputColor );
     void SetButtonText(std::string text);
+
+    void SetButtonResponseFunction(std::function<void()> responseFunction, triggertype responseCondition, GLFWwindow* windowEntity);
 
     friend class AquamarineRenderer;
 };

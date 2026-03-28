@@ -23,6 +23,13 @@ AquamarineRenderer::AquamarineRenderer(){
     textPositionMap = std::make_shared<std::map<AquamarineText*, std::array<float, 2>>>(std::map<AquamarineText*, std::array<float, 2>>());
 
     textSizeMap = std::make_shared<std::map<AquamarineText*, std::array<float,2>>>(std::map<AquamarineText*, std::array<float, 2>>());
+
+    buttonWidgetarray = std::make_shared<std::vector<AquamarineButton*>>(std::vector<AquamarineButton*>());
+
+    borderVertexPosition = std::make_shared<std::vector<float>>(std::vector<float>());
+    borderVertexIndices = std::make_shared<std::vector<unsigned int>>(std::vector<unsigned int>());
+
+    seperateText = std::make_shared<std::vector<AquamarineText>>(std::vector<AquamarineText>());
 }
 AquamarineRenderer::~AquamarineRenderer(){}
 
@@ -113,6 +120,24 @@ void AquamarineRenderer::StartMainRenderLoop(AquamarineWindow& mainWindowEntity)
     glUniformMatrix4fv(LocationOfOrthoGraphicProjection, 1, 0, &orthoGraphicProjection[0][0]);
     //this is the end of the loading process of the texture of the button
 
+    //insert the draw process of the border line here
+    glGenVertexArrays(1, &borderVertexArrayObject);
+    glBindVertexArray(borderVertexArrayObject);
+
+    glGenBuffers(1, &borderVertexBufferObject);
+    glBindBuffer(GL_ARRAY_BUFFER, borderVertexBufferObject);
+    glBufferData(GL_ARRAY_BUFFER, (*borderVertexPosition).size() * sizeof(float), (*borderVertexPosition).data(), GL_STATIC_DRAW);
+
+    glGenBuffers(1, &borderVertexPositionIndices);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, borderVertexPositionIndices);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (*borderVertexIndices).size() * sizeof(unsigned int), (*borderVertexIndices).data(), GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+    //notice that you still need to push the array into the array in the renderer to actually draw the border of the button
+
+
     //basically here is the source of the segmentation fault
     for(std::shared_ptr<AquamarineText> item: (*textEntity_Renderer)){
         (*item).SetupText(std::string(FontPath));
@@ -149,12 +174,39 @@ void AquamarineRenderer::StartMainRenderLoop(AquamarineWindow& mainWindowEntity)
 
     float actualStartPositionX, actualStartPositionY;
 
+    //this is the main loop of setting the callback function in the renderer
+    glfwSetWindowUserPointer(*(windowEntity_Renderer->windowEntity), buttonWidgetarray.get());
+    glfwSetMouseButtonCallback(*(windowEntity_Renderer->windowEntity),
+        [](GLFWwindow* windowEntity, int button, int action, int mods){
+            // cast to vector, not a single button
+            auto* list = static_cast<std::vector<AquamarineButton*>*>(glfwGetWindowUserPointer(windowEntity));
+            if(action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT){
+                double mouseX, mouseY;
+                glfwGetCursorPos(windowEntity, &mouseX, &mouseY);
+                mouseY = 600.0f - mouseY;
+                for(auto& btn : *list){
+                    if((btn->actualAnchorPositionX - (*(btn->ButtonSize))[0]*0.5f) < mouseX &&
+                       (btn->actualAnchorPositionX + (*(btn->ButtonSize))[0]*0.5f) > mouseX &&
+                       (btn->actualAnchorPositionY - (*(btn->ButtonSize))[1]*0.5f) < mouseY &&
+                       (btn->actualAnchorPositionY + (*(btn->ButtonSize))[1]*0.5f) > mouseY){
+                        for(auto& fn : (*btn->ButtonResponseFunctions)){
+                            fn();
+                        }
+                    }
+                }
+            }
+        });
+
     while(!glfwWindowShouldClose((*(windowEntity_Renderer->windowEntity)))){
         //render the color onto the screen with the default black color
         glClearColor((*(windowEntity_Renderer->WindowColor))[0], 
             (*(windowEntity_Renderer->WindowColor))[1], 
             (*(windowEntity_Renderer->WindowColor))[2], 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
+        //you should draw the borderlines here to avoid the mis bound of the vertexarray object
+        glBindVertexArray(borderVertexArrayObject);
+        glDrawElements(GL_TRIANGLES, (*borderVertexIndices).size(), GL_UNSIGNED_INT, 0 );
+
 
         //here will be the button drawing process, using the indices to draw that triangle
         (*shaderHandlerEntity_Renderer).UseTraditionalShaderProgram();
@@ -180,6 +232,8 @@ void AquamarineRenderer::StartMainRenderLoop(AquamarineWindow& mainWindowEntity)
             }
             else{continue;}
         }
+
+        //here is the button callback function
 
         glfwPollEvents();
         glfwSwapBuffers((*(windowEntity_Renderer->windowEntity)));
@@ -212,7 +266,7 @@ template<> void AquamarineRenderer::AddWidget<AquamarineButton>(AquamarineButton
     for (float item : (*buttonWidget.ButtonColor)) {
         (*BatchRenderingArray_color).emplace_back(item);
     }
-
+    //i know, i know, you say that this could be optimized with the multithreading, i have no time to do this in alpha 1 ok?
     for (float item : (*buttonWidget.ButtonUVCoords)) {
         (*BatchRenderingArray_Color_UV).emplace_back(item);
     }
@@ -252,4 +306,6 @@ template<> void AquamarineRenderer::AddWidget<AquamarineButton>(AquamarineButton
     }
     (*textSizeMap).insert({buttonWidget.ButtonText.get(),
         std::array<float, 2>({labelWidth, labelHeight})});
+
+    (*buttonWidgetarray).emplace_back(&buttonWidget);
 }
