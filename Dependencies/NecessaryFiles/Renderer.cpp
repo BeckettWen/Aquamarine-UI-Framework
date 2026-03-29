@@ -228,7 +228,7 @@ void AquamarineRenderer::StartMainRenderLoop(AquamarineWindow& mainWindowEntity)
                 actualStartPositionX = it2->second[0] - 0.5f*(it4->second[0]);
                 actualStartPositionY = it2->second[1] - 0.5f*(it4->second[1]);
                 foundedText = (*it).second;
-                (*item).RenderText(foundedText, actualStartPositionX ,actualStartPositionY, it3->second, glm::vec3(1.0f, 1.0f, 1.0f), (*shaderHandlerEntity_Renderer));
+                (*item).RenderText(foundedText, actualStartPositionX ,actualStartPositionY, it3->second, glm::vec3(0.0f, 0.0f, 0.0f), (*shaderHandlerEntity_Renderer));
             }
             else{continue;}
         }
