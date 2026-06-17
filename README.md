@@ -1,6 +1,7 @@
 # Aquamarine-UI-Experimental
 **This UI Framework is still in Experimental Phase and still in Construction**  
-*Alpha 1 (Coral) is set to be released in Mid-April*
+*Alpha 2 is set to be released in Mid-August, with several updates of Alpha 1 expected to be released in July*  
+*At the end of this year, the whole project will migrate to Vulkan, which is set to be done in Alpha 3*
 ***
 
 **Introduction:**  
@@ -16,10 +17,4 @@ Copy the header file and the C++ file to your directory and use the function ins
   
 the "Main.cpp" contains the example of the Aquamarine UI, **DO NOT** copy that if you don't need it
   
-```cpp
-//Creating the basic window
-//Parameter Explanation(window width, window height, color array, transparency, window title)
-Aquamarine_Window exampleWindow = Aquamarine_Window();
-exampleWindow.CreateCustomizedWindow(1366, 768, RGB, 1.0f, "Default Window Title");
 
-```
