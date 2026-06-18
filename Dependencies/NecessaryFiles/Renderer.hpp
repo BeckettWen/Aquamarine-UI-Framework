@@ -69,7 +69,16 @@ class AquamarineRenderer{
 
     template<typename T> void AddWidget(T& WidgetObject);
     template<> void AddWidget<AquamarineButton>(AquamarineButton& buttonObject);
+    template<> void AddWidget<AquamarineText>(AquamarineText& textObject);
 
     friend class ShaderHandler;
     friend class AquamarineWindow;
+};
+
+class stateMachine{
+    private:
+    bool currentState = false;
+
+    protected:
+    friend class AquamarineRenderer;
 };

@@ -1,5 +1,6 @@
 
 #include "Renderer.hpp"
+#include <thread>
 
 AquamarineRenderer::AquamarineRenderer(){
     BatchRenderingArray = std::make_unique<std::vector<float>>(std::vector<float>());
@@ -263,13 +264,26 @@ template<> void AquamarineRenderer::AddWidget<AquamarineButton>(AquamarineButton
     (*buttonTextMap).insert({buttonWidget.ButtonText.get(), buttonWidget.InternalText});
     (*textPositionMap).insert({buttonWidget.ButtonText.get(), std::array<float, 2>({buttonWidget.actualAnchorPositionX, buttonWidget.actualAnchorPositionY})});
 
-    for (float item : (*buttonWidget.ButtonColor)) {
-        (*BatchRenderingArray_color).emplace_back(item);
-    }
-    //i know, i know, you say that this could be optimized with the multithreading, i have no time to do this in alpha 1 ok?
-    for (float item : (*buttonWidget.ButtonUVCoords)) {
-        (*BatchRenderingArray_Color_UV).emplace_back(item);
-    }
+    //this is where the multitasking begins
+    //for (float item : (*buttonWidget.ButtonColor)) {
+      //  (*BatchRenderingArray_color).emplace_back(item);
+    //}
+
+    //two thread as a thread group, which consumes less computing resources
+    std::thread thread_ArrayColorEmplaceBack([&](){
+        for (float item : (*buttonWidget.ButtonColor)) {
+            (*BatchRenderingArray_color).emplace_back(item);
+        }
+    });
+
+    std::thread thread_BatchRenderingArray([&](){
+        for (float item : (*buttonWidget.ButtonUVCoords)) {
+            (*BatchRenderingArray_Color_UV).emplace_back(item);
+        }
+    });
+
+    thread_ArrayColorEmplaceBack.join();
+    thread_BatchRenderingArray.join();
 
     unsigned int autoIncrement = (*BatchRenderingArray).size()/2 - 4;
 
