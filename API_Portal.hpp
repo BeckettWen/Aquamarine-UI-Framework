@@ -1,17 +1,16 @@
-
-//this is the general API Portal of this UI Framework
-
 #pragma once
 
-#include "Dependencies/NecessaryFiles/ShaderHandling.hpp"
-#include "Dependencies/NecessaryFiles/Window.hpp"
-#include "Dependencies/NecessaryFiles/Renderer.hpp"
-#include "Dependencies/NecessaryFiles/general_include.hpp"
+// X-19 (Lyra) public API portal — Vulkan-based backend.
+//
+// The framework is now Vulkan-backed. The public surface is:
+//   - Window        : GLFW window (Vulkan, no OpenGL context) + size/cursor
+//   - VulkanRenderer: Vulkan device/swapchain/pipeline + batched rectangle
+//                     rendering + click dispatch
+//   - Rectangle     : widget with top-left origin, color, and onClick callback
+//
+// Include the implementation headers directly. This header is kept as the
+// project's API entry point for compatibility with the original layout.
 
-class AquamarineUI_Window : public AquamarineWindow{};
-
-class AquamarineUI_Shader : public ShaderHandler{};
-
-class AquamarineUI_Renderer: public AquamarineRenderer{};
-
-class AquamarineUI_Button: public AquamarineButton{};
+#include "Window.hpp"
+#include "Rectangle.hpp"
+#include "VulkanRenderer.hpp"
