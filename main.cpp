@@ -1,21 +1,20 @@
-// X-19 (Lyra) demo — Vulkan-based UI framework.
+// X-19 Lyra Phase 2 demo — Vulkan-based UI framework with texture engine.
 //
-// Draws a few colored rectangles as a single indexed batch and dispatches
+// Displays solid-color and textured rectangles as indexed batch draws,
+// loads PPM P6 textures from project assets at runtime, and dispatches
 // click callbacks. Top-left-origin coordinates; latest-added rectangle is
 // topmost for both drawing and click hit-testing.
 //
 // Build:
 //   cmake -S . -B build -DVulkan_ROOT=<path-to-VulkanSDK>/macOS
 //   cmake --build build
-// Run (from project root, so Shaders/ is found):
-//   VULKAN_SDK=<path-to-VulkanSDK> \
-//   DYLD_LIBRARY_PATH=<path-to-VulkanSDK>/macOS/lib \
-//   VK_ICD_FILENAMES=<path-to-VulkanSDK>/macOS/share/vulkan/icd.d/MoltenVK_icd.json \
-//   ./build/x19
+// Run (from project root, so Shaders/ and Assets/ are found):
+//   ./run.sh
 
 #include "Window.hpp"
 #include "VulkanRenderer.hpp"
 #include "Rectangle.hpp"
+#include "Texture.hpp"
 
 #include <iostream>
 #include <memory>
@@ -31,7 +30,7 @@ int main() {
     const int winH = 600;
 
     Window window;
-    if (!window.create(winW, winH, "X-19 Vulkan — rectangle + click")) {
+    if (!window.create(winW, winH, "X-19 Lyra Phase 2 — Texture Engine")) {
         std::cerr << "Demo: failed to create GLFW window\n";
         glfwTerminate();
         return 1;
@@ -41,42 +40,93 @@ int main() {
     if (!renderer.init(window.handle(),
                        window.fbWidth(), window.fbHeight(),
                        window.width(), window.height(),
-                       SHADER_PATH)) {
+                       "Shaders")) {
         std::cerr << "Demo: failed to initialize Vulkan renderer\n";
         glfwTerminate();
         return 1;
     }
 
-    // Resize: mark the swapchain outdated so the next frame rebuilds it.
     window.setResizeCallback([&renderer](int fbw, int fbh, int ww, int wh) {
         renderer.framebufferResized(fbw, fbh, ww, wh);
     });
 
-    // Rectangles (screen/logical coords, top-left origin).
+    // --- Load textures from project assets (PPM P6) ---
+    // These are genuinely loaded at runtime via the PPM loader, not baked
+    // into vertex colors.
+    TextureRecord texRed = loadPPM("Assets/checkerboard.ppm");
+    TextureRecord texGrad = loadPPM("Assets/gradient.ppm");
+
+    int layerRed = -1;
+    int layerGrad = -1;
+
+    if (texRed.valid()) {
+        layerRed = renderer.addTexture(std::move(texRed));
+        std::cout << "Demo: checkerboard texture -> layer " << layerRed << "\n";
+    } else {
+        std::cerr << "Demo: failed to load checkerboard.ppm\n";
+    }
+
+    if (texGrad.valid()) {
+        layerGrad = renderer.addTexture(std::move(texGrad));
+        std::cout << "Demo: gradient texture -> layer " << layerGrad << "\n";
+    } else {
+        std::cerr << "Demo: failed to load gradient.ppm\n";
+    }
+
+    // Upload textures to Vulkan before drawing.
+    if (!renderer.uploadTextures()) {
+        std::cerr << "Demo: failed to upload textures to Vulkan\n";
+        renderer.destroy();
+        glfwTerminate();
+        return 1;
+    }
+
+    // --- Rectangles (screen/logical coords, top-left origin) ---
     // Overlap rule: latest-added (topmost) wins clicks.
     std::vector<Rectangle> rects;
-    rects.reserve(3);
+    rects.reserve(5);
 
-    rects.emplace_back(100.0f, 100.0f, 200.0f, 150.0f,
+    // Solid red rectangle (no texture, layer -1)
+    rects.emplace_back(50.0f, 50.0f, 200.0f, 150.0f,
                        std::array<float, 4>{1.0f, 0.2f, 0.2f, 1.0f});
+    rects.back().textureLayer = -1;
     rects.back().onClick = []() {
-        std::cout << "click: red rectangle (rect 1)\n";
+        std::cout << "click: solid red rectangle\n";
     };
 
-    rects.emplace_back(350.0f, 220.0f, 200.0f, 120.0f,
+    // Textured checkerboard rectangle (layer 0)
+    rects.emplace_back(300.0f, 50.0f, 200.0f, 150.0f,
+                       std::array<float, 4>{1.0f, 1.0f, 1.0f, 1.0f});
+    rects.back().textureLayer = layerRed;
+    rects.back().onClick = []() {
+        std::cout << "click: checkerboard rectangle\n";
+    };
+
+    // Textured gradient rectangle (layer 1) overlapping checkerboard
+    rects.emplace_back(350.0f, 100.0f, 200.0f, 150.0f,
+                       std::array<float, 4>{1.0f, 1.0f, 1.0f, 0.9f});
+    rects.back().textureLayer = layerGrad;
+    rects.back().onClick = []() {
+        std::cout << "click: gradient rectangle (topmost in overlap)\n";
+    };
+
+    // Solid green rectangle (no texture)
+    rects.emplace_back(50.0f, 250.0f, 150.0f, 150.0f,
                        std::array<float, 4>{0.2f, 0.8f, 0.2f, 1.0f});
+    rects.back().textureLayer = -1;
     rects.back().onClick = []() {
-        std::cout << "click: green rectangle (rect 2)\n";
+        std::cout << "click: solid green rectangle\n";
     };
 
-    // Overlaps rect 1 -> topmost; clicks in the overlap hit rect 3 first.
-    rects.emplace_back(150.0f, 150.0f, 150.0f, 150.0f,
-                       std::array<float, 4>{0.2f, 0.4f, 1.0f, 0.9f});
+    // Textured checkerboard with tint (layer 0, tinted blue)
+    rects.emplace_back(250.0f, 250.0f, 150.0f, 150.0f,
+                       std::array<float, 4>{0.3f, 0.5f, 1.0f, 1.0f});
+    rects.back().textureLayer = layerRed;
     rects.back().onClick = []() {
-        std::cout << "click: blue rectangle (rect 3, topmost)\n";
+        std::cout << "click: tinted checkerboard rectangle\n";
     };
 
-    // The renderer stores non-owning pointers; rects must outlive the renderer.
+    // The renderer stores non-owning pointers; rects must outlive renderer.
     for (auto& r : rects)
         renderer.addRectangle(&r);
 

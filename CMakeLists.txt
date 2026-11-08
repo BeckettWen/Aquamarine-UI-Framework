@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
-project(X19 VERSION 0.1 LANGUAGES CXX)
+project(X19 VERSION 0.2 LANGUAGES CXX)
 
-# X-19 (Lyra) — Vulkan-based UI framework.
+# X-19 Lyra (Cloudsdale) — Vulkan-based UI framework with Phase 2 texture engine.
 # Active renderer: Vulkan only (no OpenGL / GLEW in the active build).
 
 set(CMAKE_CONFIGURE_DEPENDS "CMakeLists.txt")
@@ -28,6 +28,8 @@ add_executable(x19
     Window.cpp
     Rectangle.hpp
     Rectangle.cpp
+    Texture.hpp
+    Texture.cpp
     VulkanRenderer.hpp
     VulkanRenderer.cpp
 )
@@ -36,9 +38,14 @@ target_include_directories(x19 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(x19 PRIVATE Vulkan::Vulkan glfw)
 
-# Shader directory (source .spv files are loaded at runtime from here).
+# Shader directory (source + compiled .spv files are loaded at runtime from here).
 target_compile_definitions(x19 PRIVATE
     SHADER_PATH="${CMAKE_CURRENT_SOURCE_DIR}/Shaders"
+)
+
+# Assets directory (PPM P6 textures loaded at runtime from here).
+target_compile_definitions(x19 PRIVATE
+    ASSET_PATH="${CMAKE_CURRENT_SOURCE_DIR}/Assets"
 )
 
 # macOS frameworks needed by GLFW / Vulkan (MoltenVK -> Metal).

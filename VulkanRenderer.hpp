@@ -8,23 +8,32 @@
 #include <string>
 
 class Rectangle;
+class TextureManager;
+#include "Texture.hpp"
 
-// Vulkan-backed renderer for X-19.
+// Vulkan-backed renderer for X-19 (Lyra / Cloudsdale), Phase 2.
 //
-// Design (first vertical slice):
+// Design:
 //   - One general renderer handles all rendering.
-//   - Pipeline accepts arrays of vertices / indices and reduces draw calls:
-//     ALL rectangles are submitted as ONE indexed batch draw per frame.
-//   - Dynamic rendering (no VkRenderPass) + dynamic viewport/scissor, so the
-//     pipeline does not depend on swapchain size and only swapchain-dependent
-//     resources are recreated on resize.
-//   - Push constants (viewport + hi-DPI scale) instead of descriptor sets,
-//     keeping the first slice minimal.
-//   - Host-visible, host-coherent vertex/index buffers mapped persistently and
+//   - Pipeline accepts arrays of vertices/indices, reducing draw calls:
+//     rectangles are grouped by texture layer and submitted as one indexed
+//     batch draw per compatible group.
+//   - Dynamic rendering (no VkRenderPass) + dynamic viewport/scissor.
+//   - Push constants (viewport, hi-DPI scale, texture layer) instead of
+//     per-draw uniform buffers.
+//   - Host-visible, host-coherent, persistently mapped vertex/index buffers,
 //     re-uploaded by memcpy each frame (CPU-updated batch).
 //
-// Coordinate convention: top-left origin, screen/logical pixels — the same
-// convention used for GLFW cursor hit-testing, so rendering and input agree.
+// Phase 2 texture path:
+//   - Textures are registered via TextureManager, assigned stable layer
+//     indices, and uploaded into a VK_IMAGE_VIEW_TYPE_2D_ARRAY image.
+//   - A descriptor set (combined image sampler) binds the array to the
+//     fragment shader.
+//   - Rectangles carry per-vertex UVs and a textureLayer (>=0 = sample that
+//     layer; -1 = solid color, using vertex color only).
+//
+// Coordinate convention: top-left origin, screen/logical pixels — same as
+// GLFW cursor hit-testing, so rendering and input agree.
 //
 // Overlap rule: latest-added rectangle is topmost (drawn last, checked first
 // for clicks).
@@ -34,7 +43,7 @@ public:
     ~VulkanRenderer();
 
     // Initialize Vulkan (instance, surface, device, swapchain, pipeline, ...).
-    // shaderDir is the directory containing triangle.vert.spv / triangle.frag.spv.
+    // shaderDir is the directory containing .vert.spv / .frag.spv files.
     bool init(GLFWwindow* window, int fbWidth, int fbHeight,
               int winWidth, int winHeight, const char* shaderDir = "Shaders");
     void destroy();
@@ -44,17 +53,27 @@ public:
     int addRectangle(Rectangle* rect);
     void removeRectangle(Rectangle* rect);
 
-    // Draw one frame: rebuild the vertex/index batch, record, submit, present.
+    // Register a decoded texture, assigning a stable layer index.
+    // Returns layer index or -1 on error.
+    int addTexture(TextureRecord tex);
+
+    // Upload all registered textures to Vulkan (must be called after init
+    // and before drawing). Returns false on failure.
+    bool uploadTextures();
+
+    // Draw one frame: rebuild batches, record, submit, present.
     // Returns false on unrecoverable error.
     bool drawFrame();
 
-    // Called by the window resize callback; marks swapchain outdated and
-    // records the new logical/framebuffer size.
+    // Called by the window resize callback; marks swapchain outdated.
     void framebufferResized(int fbWidth, int fbHeight,
                             int winWidth, int winHeight);
 
     bool isValid() const { return m_valid; }
     VkDevice device() const { return m_device; }
+    VkPhysicalDevice physicalDevice() const { return m_physicalDevice; }
+    VkQueue graphicsQueue() const { return m_graphicsQueue; }
+    VkCommandPool commandPool() const { return m_commandPool; }
 
     int framebufferWidth() const  { return m_fbWidth;  }
     int framebufferHeight() const { return m_fbHeight; }
@@ -70,6 +89,8 @@ private:
     bool createCommandPool();
     bool createBuffers();
     bool createSyncObjects();
+    bool createDescriptorResources();
+    bool updateDescriptorSet();
 
     // ---- cleanup ----
     void cleanupSwapchain();
@@ -77,8 +98,8 @@ private:
     bool recreateSwapchain();
 
     // ---- frame ----
-    void buildBatch();
-    void drawBatch(uint32_t imageIndex);
+    void buildBatches();          // group rectangles by texture layer
+    void drawBatches(uint32_t imageIndex);
 
     // ---- helpers ----
     static std::vector<char> readFile(const std::string& path);
@@ -92,7 +113,7 @@ private:
     VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
     VkDevice m_device = VK_NULL_HANDLE;
     VkQueue m_graphicsQueue = VK_NULL_HANDLE;
-    VkQueue m_presentQueue = VK_NULL_HANDLE;
+    VkCommandPool m_commandPool = VK_NULL_HANDLE;
     uint32_t m_graphicsQueueFamily = VK_QUEUE_FAMILY_IGNORED;
 
     VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
@@ -103,16 +124,16 @@ private:
 
     VkPipeline m_pipeline = VK_NULL_HANDLE;
     VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
+    VkDescriptorSetLayout m_descriptorSetLayout = VK_NULL_HANDLE;
+    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
+    VkDescriptorSet m_descriptorSet = VK_NULL_HANDLE;
 
-    VkCommandPool m_commandPool = VK_NULL_HANDLE;
-    std::vector<VkCommandBuffer> m_commandBuffers;
+    VkCommandBuffer m_commandBuffer = VK_NULL_HANDLE;
 
-    // synchronization (one set per frame in flight)
-    std::vector<VkSemaphore> m_imageAvailableSemaphores;
-    std::vector<VkSemaphore> m_renderFinishedSemaphores;
-    std::vector<VkFence> m_inFlightFences;
-    size_t m_currentFrame = 0;
-    static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
+    // synchronization (single frame in flight for simplicity)
+    VkSemaphore m_imageAvailableSemaphore = VK_NULL_HANDLE;
+    VkSemaphore m_renderFinishedSemaphore = VK_NULL_HANDLE;
+    VkFence m_inFlightFence = VK_NULL_HANDLE;
 
     // host-visible, host-coherent, persistently mapped vertex/index buffers
     VkBuffer m_vertexBuffer = VK_NULL_HANDLE;
@@ -125,18 +146,30 @@ private:
     uint32_t* m_indexMapped = nullptr;
     size_t m_indexBufferSize = 0;
 
-    size_t m_vertexCount = 0;   // current batch vertex count
-    size_t m_indexCount = 0;    // current batch index count
+    // batch state: grouped draw calls
+    struct DrawGroup {
+        int textureLayer = -1;          // -1 = solid color
+        size_t vertexOffset = 0;        // vertex count offset
+        size_t indexOffset = 0;         // index count offset
+        size_t indexCount = 0;          // indices in this group
+    };
+    std::vector<DrawGroup> m_drawGroups;
+    size_t m_totalVertexCount = 0;
+    size_t m_totalIndexCount = 0;
 
     // state
     int m_fbWidth = 0, m_fbHeight = 0;
     int m_winWidth = 0, m_winHeight = 0;
     bool m_swapchainOutdated = false;
     bool m_valid = false;
+    bool m_texturesUploaded = false;
 
     std::string m_shaderDir;
 
     // rectangles: non-owning pointers; order = draw order (last = topmost)
     std::vector<Rectangle*> m_rectangles;
     static constexpr size_t MAX_RECTANGLES = 64;
+
+    // texture manager (renderer-owned)
+    TextureManager* m_textureManager = nullptr;
 };

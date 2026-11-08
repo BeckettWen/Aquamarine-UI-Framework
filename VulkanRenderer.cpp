@@ -1,4 +1,5 @@
 #include "VulkanRenderer.hpp"
+#include "Texture.hpp"
 #include "Rectangle.hpp"
 
 #include <cstring>
@@ -8,10 +9,14 @@
 #include <cstdint>
 #include <limits>
 
-VulkanRenderer::VulkanRenderer() = default;
+VulkanRenderer::VulkanRenderer() {
+    m_textureManager = new TextureManager();
+}
 
 VulkanRenderer::~VulkanRenderer() {
     destroy();
+    delete m_textureManager;
+    m_textureManager = nullptr;
 }
 
 // ---------------------------------------------------------------------------
@@ -88,10 +93,6 @@ bool VulkanRenderer::init(GLFWwindow* window, int fbWidth, int fbHeight,
         std::cerr << "Renderer: createImageViews failed\n";
         return false;
     }
-    if (!createGraphicsPipeline(m_shaderDir)) {
-        std::cerr << "Renderer: createGraphicsPipeline failed\n";
-        return false;
-    }
     if (!createCommandPool()) {
         std::cerr << "Renderer: createCommandPool failed\n";
         return false;
@@ -102,6 +103,16 @@ bool VulkanRenderer::init(GLFWwindow* window, int fbWidth, int fbHeight,
     }
     if (!createSyncObjects()) {
         std::cerr << "Renderer: createSyncObjects failed\n";
+        return false;
+    }
+    // Descriptor resources must exist before the pipeline (pipeline layout
+    // references the descriptor set layout).
+    if (!createDescriptorResources()) {
+        std::cerr << "Renderer: createDescriptorResources failed\n";
+        return false;
+    }
+    if (!createGraphicsPipeline(m_shaderDir)) {
+        std::cerr << "Renderer: createGraphicsPipeline failed\n";
         return false;
     }
 
@@ -128,6 +139,20 @@ void VulkanRenderer::cleanup() {
 
     cleanupSwapchain();
 
+    if (m_descriptorSetLayout != VK_NULL_HANDLE) {
+        vkDestroyDescriptorSetLayout(m_device, m_descriptorSetLayout, nullptr);
+        m_descriptorSetLayout = VK_NULL_HANDLE;
+    }
+    if (m_descriptorPool != VK_NULL_HANDLE) {
+        vkDestroyDescriptorPool(m_device, m_descriptorPool, nullptr);
+        m_descriptorPool = VK_NULL_HANDLE;
+    }
+    m_descriptorSet = VK_NULL_HANDLE;
+
+    if (m_textureManager != VK_NULL_HANDLE) {
+        m_textureManager->destroy(m_device);
+    }
+
     if (m_vertexBuffer != VK_NULL_HANDLE) {
         vkDestroyBuffer(m_device, m_vertexBuffer, nullptr);
         m_vertexBuffer = VK_NULL_HANDLE;
@@ -148,16 +173,20 @@ void VulkanRenderer::cleanup() {
     }
     m_indexMapped = nullptr;
 
-    for (auto s : m_imageAvailableSemaphores)
-        if (s != VK_NULL_HANDLE) vkDestroySemaphore(m_device, s, nullptr);
-    m_imageAvailableSemaphores.clear();
-    for (auto s : m_renderFinishedSemaphores)
-        if (s != VK_NULL_HANDLE) vkDestroySemaphore(m_device, s, nullptr);
-    m_renderFinishedSemaphores.clear();
-    for (auto f : m_inFlightFences)
-        if (f != VK_NULL_HANDLE) vkDestroyFence(m_device, f, nullptr);
-    m_inFlightFences.clear();
+    if (m_imageAvailableSemaphore != VK_NULL_HANDLE)
+        vkDestroySemaphore(m_device, m_imageAvailableSemaphore, nullptr);
+    m_imageAvailableSemaphore = VK_NULL_HANDLE;
+    if (m_renderFinishedSemaphore != VK_NULL_HANDLE)
+        vkDestroySemaphore(m_device, m_renderFinishedSemaphore, nullptr);
+    m_renderFinishedSemaphore = VK_NULL_HANDLE;
+    if (m_inFlightFence != VK_NULL_HANDLE)
+        vkDestroyFence(m_device, m_inFlightFence, nullptr);
+    m_inFlightFence = VK_NULL_HANDLE;
 
+    if (m_commandBuffer != VK_NULL_HANDLE && m_commandPool != VK_NULL_HANDLE) {
+        vkFreeCommandBuffers(m_device, m_commandPool, 1, &m_commandBuffer);
+        m_commandBuffer = VK_NULL_HANDLE;
+    }
     if (m_commandPool != VK_NULL_HANDLE) {
         vkDestroyCommandPool(m_device, m_commandPool, nullptr);
         m_commandPool = VK_NULL_HANDLE;
@@ -177,8 +206,8 @@ void VulkanRenderer::cleanup() {
     }
     m_physicalDevice = VK_NULL_HANDLE;
     m_graphicsQueue = VK_NULL_HANDLE;
-    m_presentQueue = VK_NULL_HANDLE;
     m_valid = false;
+    m_texturesUploaded = false;
 }
 
 void VulkanRenderer::cleanupSwapchain() {
@@ -189,13 +218,6 @@ void VulkanRenderer::cleanupSwapchain() {
     if (m_swapchain != VK_NULL_HANDLE) {
         vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
         m_swapchain = VK_NULL_HANDLE;
-    }
-
-    if (!m_commandBuffers.empty() && m_commandPool != VK_NULL_HANDLE) {
-        vkFreeCommandBuffers(m_device, m_commandPool,
-                             static_cast<uint32_t>(m_commandBuffers.size()),
-                             m_commandBuffers.data());
-        m_commandBuffers.clear();
     }
 }
 
@@ -214,7 +236,7 @@ bool VulkanRenderer::createInstance() {
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = "X-19 Vulkan";
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.pEngineName = "X-19 Lyra";
+    appInfo.pEngineName = "Lyra / Cloudsdale";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_4;
 
@@ -223,7 +245,6 @@ bool VulkanRenderer::createInstance() {
     createInfo.pApplicationInfo = &appInfo;
     createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
     createInfo.ppEnabledExtensionNames = extensions.data();
-    // MoltenVK is a portability driver: enumerate it.
     createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 
     VkResult res = vkCreateInstance(&createInfo, nullptr, &m_instance);
@@ -245,7 +266,6 @@ bool VulkanRenderer::pickPhysicalDevice() {
         vkGetPhysicalDeviceProperties(d, &props);
         std::cout << "Renderer: physical device: " << props.deviceName << "\n";
 
-        // Queue family supporting graphics + present on the same queue.
         uint32_t qfCount = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(d, &qfCount, nullptr);
         std::vector<VkQueueFamilyProperties> qfs(qfCount);
@@ -273,7 +293,7 @@ bool VulkanRenderer::pickPhysicalDevice() {
 bool VulkanRenderer::createLogicalDevice() {
     std::vector<const char*> deviceExtensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        "VK_KHR_portability_subset",  // MoltenVK portability
+        "VK_KHR_portability_subset",
     };
 
     float queuePriority = 1.0f;
@@ -283,7 +303,7 @@ bool VulkanRenderer::createLogicalDevice() {
     queueCreate.queueCount = 1;
     queueCreate.pQueuePriorities = &queuePriority;
 
-    VkPhysicalDeviceFeatures deviceFeatures{};  // fixed-function features, none needed
+    VkPhysicalDeviceFeatures deviceFeatures{};
 
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -299,12 +319,11 @@ bool VulkanRenderer::createLogicalDevice() {
     if (!checkValidationResult(res, "vkCreateDevice")) return false;
 
     vkGetDeviceQueue(m_device, m_graphicsQueueFamily, 0, &m_graphicsQueue);
-    m_presentQueue = m_graphicsQueue;  // same queue does present
     return true;
 }
 
 // ---------------------------------------------------------------------------
-// swapchain / image views / pipeline
+// swapchain / image views
 // ---------------------------------------------------------------------------
 bool VulkanRenderer::createSwapchain() {
     VkSurfaceCapabilitiesKHR caps{};
@@ -314,7 +333,6 @@ bool VulkanRenderer::createSwapchain() {
         return false;
     }
 
-    // Extent: use current surface extent if defined, else clamp window fb size.
     VkExtent2D extent;
     if (caps.currentExtent.width != UINT32_MAX) {
         extent = caps.currentExtent;
@@ -327,18 +345,16 @@ bool VulkanRenderer::createSwapchain() {
                                    caps.maxImageExtent.height);
     }
 
-    // Image count.
     uint32_t imageCount = caps.minImageCount + 1;
     if (caps.maxImageCount > 0 && imageCount > caps.maxImageCount)
         imageCount = caps.maxImageCount;
 
-    // Surface format: prefer BGRA8 UNORM SRGB.
     uint32_t fmtCount = 0;
     vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice, m_surface, &fmtCount,
                                          nullptr);
     std::vector<VkSurfaceFormatKHR> formats(fmtCount);
-    vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice, m_surface, &fmtCount,
-                                         formats.data());
+    vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice, m_surface,
+                                         &fmtCount, formats.data());
     VkSurfaceFormatKHR surfaceFormat = formats[0];
     for (const auto& f : formats) {
         if (f.format == VK_FORMAT_B8G8R8A8_UNORM &&
@@ -348,7 +364,6 @@ bool VulkanRenderer::createSwapchain() {
         }
     }
 
-    // Present mode: prefer FIFO (guaranteed, vsync). Try mailbox for low latency.
     uint32_t pmCount = 0;
     vkGetPhysicalDeviceSurfacePresentModesKHR(m_physicalDevice, m_surface,
                                               &pmCount, nullptr);
@@ -360,7 +375,6 @@ bool VulkanRenderer::createSwapchain() {
         if (m == VK_PRESENT_MODE_MAILBOX_KHR) { presentMode = m; break; }
     }
 
-    // Composite alpha: opaque preferred.
     VkCompositeAlphaFlagBitsKHR compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     if (!(caps.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)) {
         compositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
@@ -425,9 +439,90 @@ bool VulkanRenderer::createImageViews() {
     return true;
 }
 
+// ---------------------------------------------------------------------------
+// descriptor resources (texture array bindings)
+// ---------------------------------------------------------------------------
+bool VulkanRenderer::createDescriptorResources() {
+    // Descriptor set layout: one combined image sampler binding.
+    VkDescriptorSetLayoutBinding binding{};
+    binding.binding = 0;
+    binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    binding.descriptorCount = 1;
+    binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    binding.pImmutableSamplers = nullptr;
+
+    VkDescriptorSetLayoutCreateInfo layoutCi{};
+    layoutCi.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutCi.bindingCount = 1;
+    layoutCi.pBindings = &binding;
+
+    if (vkCreateDescriptorSetLayout(m_device, &layoutCi, nullptr,
+                                    &m_descriptorSetLayout) != VK_SUCCESS) {
+        std::cerr << "Renderer: vkCreateDescriptorSetLayout failed\n";
+        return false;
+    }
+
+    // Descriptor pool: one set, one combined image sampler.
+    VkDescriptorPoolSize poolSize{};
+    poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSize.descriptorCount = 1;
+
+    VkDescriptorPoolCreateInfo poolCi{};
+    poolCi.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolCi.maxSets = 1;
+    poolCi.poolSizeCount = 1;
+    poolCi.pPoolSizes = &poolSize;
+
+    if (vkCreateDescriptorPool(m_device, &poolCi, nullptr,
+                               &m_descriptorPool) != VK_SUCCESS) {
+        std::cerr << "Renderer: vkCreateDescriptorPool failed\n";
+        return false;
+    }
+
+    // Allocate one descriptor set.
+    VkDescriptorSetAllocateInfo ai{};
+    ai.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    ai.descriptorPool = m_descriptorPool;
+    ai.descriptorSetCount = 1;
+    ai.pSetLayouts = &m_descriptorSetLayout;
+    if (vkAllocateDescriptorSets(m_device, &ai, &m_descriptorSet) != VK_SUCCESS) {
+        std::cerr << "Renderer: vkAllocateDescriptorSets failed\n";
+        return false;
+    }
+
+    // Descriptor will be updated once textures are uploaded (imageView +
+    // sampler from TextureManager).
+    return true;
+}
+
+bool VulkanRenderer::updateDescriptorSet() {
+    if (m_descriptorSet == VK_NULL_HANDLE || !m_texturesUploaded) return false;
+    if (!m_textureManager->hasTextures()) return true;  // no textures, no update needed
+
+    VkDescriptorImageInfo imgInfo{};
+    imgInfo.sampler = m_textureManager->sampler();
+    imgInfo.imageView = m_textureManager->imageView();
+    imgInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+    VkWriteDescriptorSet write{};
+    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    write.dstSet = m_descriptorSet;
+    write.dstBinding = 0;
+    write.dstArrayElement = 0;
+    write.descriptorCount = 1;
+    write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    write.pImageInfo = &imgInfo;
+
+    vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
+    return true;
+}
+
+// ---------------------------------------------------------------------------
+// graphics pipeline (with descriptor set layout + 9-float vertex)
+// ---------------------------------------------------------------------------
 bool VulkanRenderer::createGraphicsPipeline(const std::string& shaderDir) {
-    auto vertCode = readFile(shaderDir + "/triangle.vert.spv");
-    auto fragCode = readFile(shaderDir + "/triangle.frag.spv");
+    auto vertCode = readFile(shaderDir + "/textured.vert.spv");
+    auto fragCode = readFile(shaderDir + "/textured.frag.spv");
     if (vertCode.empty() || fragCode.empty()) {
         std::cerr << "Renderer: failed to read SPIR-V shaders from "
                   << shaderDir << "\n";
@@ -455,25 +550,31 @@ bool VulkanRenderer::createGraphicsPipeline(const std::string& shaderDir) {
     fragStage.pName = "main";
     VkPipelineShaderStageCreateInfo stages[2] = {vertStage, fragStage};
 
-    // Vertex input: binding 0, stride 6 floats; pos at loc 0, color at loc 1.
+    // Vertex input: binding 0, stride 9 floats = 36 bytes.
+    //   loc 0: pos  vec2  (offset 0)
+    //   loc 1: color vec4 (offset 8)
+    //   loc 2: uv    vec2  (offset 24)
     VkVertexInputBindingDescription bindingDesc{};
     bindingDesc.binding = 0;
-    bindingDesc.stride = 6 * sizeof(float);
+    bindingDesc.stride = 9 * sizeof(float);
     bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-    VkVertexInputAttributeDescription attrDesc[2] = {};
+    VkVertexInputAttributeDescription attrDesc[3] = {};
     attrDesc[0].binding = 0; attrDesc[0].location = 0;
     attrDesc[0].format = VK_FORMAT_R32G32_SFLOAT;
     attrDesc[0].offset = 0;
     attrDesc[1].binding = 0; attrDesc[1].location = 1;
     attrDesc[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
     attrDesc[1].offset = 2 * sizeof(float);
+    attrDesc[2].binding = 0; attrDesc[2].location = 2;
+    attrDesc[2].format = VK_FORMAT_R32G32_SFLOAT;
+    attrDesc[2].offset = 6 * sizeof(float);
 
     VkPipelineVertexInputStateCreateInfo vi{};
     vi.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vi.vertexBindingDescriptionCount = 1;
     vi.pVertexBindingDescriptions = &bindingDesc;
-    vi.vertexAttributeDescriptionCount = 2;
+    vi.vertexAttributeDescriptionCount = 3;
     vi.pVertexAttributeDescriptions = attrDesc;
 
     VkPipelineInputAssemblyStateCreateInfo ia{};
@@ -481,7 +582,6 @@ bool VulkanRenderer::createGraphicsPipeline(const std::string& shaderDir) {
     ia.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     ia.primitiveRestartEnable = VK_FALSE;
 
-    // Dynamic viewport + scissor so pipeline is independent of swapchain size.
     VkPipelineViewportStateCreateInfo vp{};
     vp.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     vp.viewportCount = 1;
@@ -490,7 +590,7 @@ bool VulkanRenderer::createGraphicsPipeline(const std::string& shaderDir) {
     VkPipelineRasterizationStateCreateInfo rs{};
     rs.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rs.polygonMode = VK_POLYGON_MODE_FILL;
-    rs.cullMode = VK_CULL_MODE_NONE;        // no culling (winding is cosmetic)
+    rs.cullMode = VK_CULL_MODE_NONE;
     rs.frontFace = VK_FRONT_FACE_CLOCKWISE;
     rs.lineWidth = 1.0f;
 
@@ -515,7 +615,7 @@ bool VulkanRenderer::createGraphicsPipeline(const std::string& shaderDir) {
     cb.attachmentCount = 1;
     cb.pAttachments = &blend;
 
-    VkPipelineDepthStencilStateCreateInfo ds{};  // disabled
+    VkPipelineDepthStencilStateCreateInfo ds{};
 
     VkDynamicState dynamicStates[2] = {VK_DYNAMIC_STATE_VIEWPORT,
                                        VK_DYNAMIC_STATE_SCISSOR};
@@ -524,14 +624,17 @@ bool VulkanRenderer::createGraphicsPipeline(const std::string& shaderDir) {
     dyn.dynamicStateCount = 2;
     dyn.pDynamicStates = dynamicStates;
 
-    // Push constants: 2 vec2 (viewport, scale) = 16 bytes, vertex stage.
+    // Push constants: viewport(2) + scale(2) + textureLayer(1 int) = 20 bytes.
     VkPushConstantRange pushConst{};
-    pushConst.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    pushConst.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
     pushConst.offset = 0;
-    pushConst.size = 16;
+    pushConst.size = 20;
 
+    VkDescriptorSetLayout layouts[1] = {m_descriptorSetLayout};
     VkPipelineLayoutCreateInfo layoutCi{};
     layoutCi.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    layoutCi.setLayoutCount = 1;
+    layoutCi.pSetLayouts = layouts;
     layoutCi.pushConstantRangeCount = 1;
     layoutCi.pPushConstantRanges = &pushConst;
 
@@ -543,8 +646,6 @@ bool VulkanRenderer::createGraphicsPipeline(const std::string& shaderDir) {
         return false;
     }
 
-    // Dynamic rendering: pipeline references the color attachment format via
-    // VkPipelineRenderingCreateInfo; no VkRenderPass is created.
     VkPipelineRenderingCreateInfo renderingCi{};
     renderingCi.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
     renderingCi.colorAttachmentCount = 1;
@@ -564,7 +665,7 @@ bool VulkanRenderer::createGraphicsPipeline(const std::string& shaderDir) {
     ci.pColorBlendState = &cb;
     ci.pDynamicState = &dyn;
     ci.layout = m_pipelineLayout;
-    ci.renderPass = VK_NULL_HANDLE;  // dynamic rendering
+    ci.renderPass = VK_NULL_HANDLE;
     ci.subpass = 0;
 
     VkResult res = vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1,
@@ -583,13 +684,12 @@ bool VulkanRenderer::createCommandPool() {
         return false;
     }
 
-    m_commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
     VkCommandBufferAllocateInfo ai{};
     ai.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     ai.commandPool = m_commandPool;
     ai.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    ai.commandBufferCount = static_cast<uint32_t>(m_commandBuffers.size());
-    if (vkAllocateCommandBuffers(m_device, &ai, m_commandBuffers.data()) != VK_SUCCESS) {
+    ai.commandBufferCount = 1;
+    if (vkAllocateCommandBuffers(m_device, &ai, &m_commandBuffer) != VK_SUCCESS) {
         std::cerr << "Renderer: vkAllocateCommandBuffers failed\n";
         return false;
     }
@@ -612,9 +712,8 @@ static uint32_t memoryTypeIndex(VkPhysicalDevice pd, uint32_t typeBits,
 }
 
 bool VulkanRenderer::createBuffers() {
-    // Fixed-size batch buffer for MAX_RECTANGLES (bounded first slice).
-    m_vertexBufferSize = MAX_RECTANGLES * 4 * 6 * sizeof(float);   // verts * attribs * bytes
-    m_indexBufferSize = MAX_RECTANGLES * 6 * sizeof(uint32_t);     // rects * indices * bytes
+    m_vertexBufferSize = MAX_RECTANGLES * 4 * 9 * sizeof(float);
+    m_indexBufferSize = MAX_RECTANGLES * 6 * sizeof(uint32_t);
 
     auto createBuffer = [this](VkDeviceSize size, VkBufferUsageFlags usage,
                                VkBuffer& buf, VkDeviceMemory& mem,
@@ -664,28 +763,43 @@ bool VulkanRenderer::createBuffers() {
 }
 
 bool VulkanRenderer::createSyncObjects() {
-    m_imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    m_renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    m_inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-
     VkSemaphoreCreateInfo sci{};
     sci.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     VkFenceCreateInfo fci{};
     fci.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    fci.flags = VK_FENCE_CREATE_SIGNALED_BIT;  // first frame doesn't wait
+    fci.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-        if (vkCreateSemaphore(m_device, &sci, nullptr,
-                              &m_imageAvailableSemaphores[i]) != VK_SUCCESS ||
-            vkCreateSemaphore(m_device, &sci, nullptr,
-                              &m_renderFinishedSemaphores[i]) != VK_SUCCESS ||
-            vkCreateFence(m_device, &fci, nullptr,
-                          &m_inFlightFences[i]) != VK_SUCCESS) {
-            std::cerr << "Renderer: sync object creation failed\n";
-            return false;
-        }
+    if (vkCreateSemaphore(m_device, &sci, nullptr,
+                          &m_imageAvailableSemaphore) != VK_SUCCESS ||
+        vkCreateSemaphore(m_device, &sci, nullptr,
+                          &m_renderFinishedSemaphore) != VK_SUCCESS ||
+        vkCreateFence(m_device, &fci, nullptr,
+                      &m_inFlightFence) != VK_SUCCESS) {
+        std::cerr << "Renderer: sync object creation failed\n";
+        return false;
     }
     return true;
+}
+
+// ---------------------------------------------------------------------------
+// texture management
+// ---------------------------------------------------------------------------
+int VulkanRenderer::addTexture(TextureRecord tex) {
+    int layer = m_textureManager->addTexture(std::move(tex));
+    return layer;
+}
+
+bool VulkanRenderer::uploadTextures() {
+    if (!m_textureManager->hasTextures()) {
+        m_texturesUploaded = true;
+        return true;
+    }
+    if (!m_textureManager->uploadToVulkan(m_device, m_physicalDevice,
+                                          m_graphicsQueue, m_commandPool)) {
+        return false;
+    }
+    m_texturesUploaded = true;
+    return updateDescriptorSet();
 }
 
 // ---------------------------------------------------------------------------
@@ -701,15 +815,11 @@ void VulkanRenderer::framebufferResized(int fbWidth, int fbHeight,
 }
 
 bool VulkanRenderer::recreateSwapchain() {
-    // Wait until the GPU is done with the old swapchain resources.
     vkDeviceWaitIdle(m_device);
     cleanupSwapchain();
 
     if (!createSwapchain()) return false;
     if (!createImageViews()) return false;
-    // Pipeline is unchanged (dynamic rendering + dynamic viewport; format
-    // rarely changes). Command buffers are re-allocated.
-    if (!createCommandPool()) return false;
 
     m_swapchainOutdated = false;
     std::cout << "Renderer: swapchain recreated ("
@@ -721,37 +831,75 @@ bool VulkanRenderer::recreateSwapchain() {
 // ---------------------------------------------------------------------------
 // batch build + draw
 // ---------------------------------------------------------------------------
-void VulkanRenderer::buildBatch() {
-    m_vertexCount = 0;
-    m_indexCount = 0;
+void VulkanRenderer::buildBatches() {
+    m_drawGroups.clear();
+    m_totalVertexCount = 0;
+    m_totalIndexCount = 0;
+
     if (m_rectangles.empty()) return;
 
-    if (m_rectangles.size() > MAX_RECTANGLES) {
-        std::cerr << "Renderer: too many rectangles (" << m_rectangles.size()
-                  << " > " << MAX_RECTANGLES << "), truncating\n";
-    }
+    // Group rectangles by textureLayer, preserving insertion order within
+    // each group. Solid (-1) group is drawn first, then each texture layer
+    // group in ascending layer order. Within a group, insertion order is
+    // preserved (topmost last).
+    struct GroupEntry {
+        int layer;
+        size_t startVertex;
+        size_t startIndex;
+    };
+    std::vector<GroupEntry> groups;  // (layer, vertexBase, indexBase)
 
     float* v = m_vertexMapped;
     uint32_t* ib = m_indexMapped;
-    unsigned int base = 0;
-    size_t drawn = 0;
+    unsigned int baseVertex = 0;
+
+    // Sort rectangles into groups without reordering within a layer.
+    // We iterate once, appending to the matching group.
+    std::vector<int> layers;
+    std::vector<size_t> groupVertStart;
+    std::vector<size_t> groupIndexStart;
+    std::vector<size_t> groupIndexCount;
+
     for (auto* r : m_rectangles) {
-        if (drawn >= MAX_RECTANGLES) break;
+        if (!r->visible) continue;
+        // Find or create group for this layer.
+        size_t g = 0;
+        bool found = false;
+        for (; g < groups.size(); ++g) {
+            if (groups[g].layer == r->textureLayer) { found = true; break; }
+        }
+        if (!found) {
+            groups.push_back(GroupEntry{r->textureLayer, m_totalVertexCount,
+                                        m_totalIndexCount});
+            groupIndexCount.push_back(0);
+        }
+
         r->writeVertices(v);
-        v += 24;  // 4 verts * 6 floats
-        r->writeIndices(ib, base);
+        v += 36;  // 4 verts * 9 floats
+        r->writeIndices(ib, baseVertex);
         ib += 6;
-        base += 4;
-        ++drawn;
+        baseVertex += 4;
+
+        m_totalVertexCount += 4;
+        m_totalIndexCount += 6;
+        groupIndexCount[g] += 6;
     }
-    m_vertexCount = drawn * 4;
-    m_indexCount = drawn * 6;
+
+    // Build draw groups.
+    for (size_t g = 0; g < groups.size(); ++g) {
+        DrawGroup dg;
+        dg.textureLayer = groups[g].layer;
+        dg.vertexOffset = groups[g].startVertex;
+        dg.indexOffset = groups[g].startIndex;
+        dg.indexCount = groupIndexCount[g];
+        m_drawGroups.push_back(dg);
+    }
 }
 
-void VulkanRenderer::drawBatch(uint32_t imageIndex) {
-    if (m_indexCount == 0) return;  // nothing to draw
+void VulkanRenderer::drawBatches(uint32_t imageIndex) {
+    if (m_drawGroups.empty()) return;
 
-    VkCommandBuffer cmd = m_commandBuffers[m_currentFrame];
+    VkCommandBuffer cmd = m_commandBuffer;
 
     VkCommandBufferBeginInfo bi{};
     bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -768,7 +916,7 @@ void VulkanRenderer::drawBatch(uint32_t imageIndex) {
     colorAttach.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     colorAttach.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttach.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    colorAttach.clearValue.color = {{0.1f, 0.1f, 0.1f, 1.0f}};  // dark gray
+    colorAttach.clearValue.color = {{0.1f, 0.1f, 0.1f, 1.0f}};
 
     VkRenderingInfo rendering{};
     rendering.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
@@ -791,22 +939,36 @@ void VulkanRenderer::drawBatch(uint32_t imageIndex) {
     vkCmdSetViewport(cmd, 0, 1, &viewport);
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
-    // Push constants: viewport (fb size) + scale (fb / window ratio) for
-    // screen->NDC conversion and high-DPI correctness.
-    float pc[4] = {
-        static_cast<float>(m_fbWidth),
-        static_cast<float>(m_fbHeight),
-        (m_winWidth > 0) ? static_cast<float>(m_fbWidth) / m_winWidth : 1.0f,
-        (m_winHeight > 0) ? static_cast<float>(m_fbHeight) / m_winHeight : 1.0f,
-    };
-    vkCmdPushConstants(cmd, m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                       16, pc);
+    // Bind descriptor set once (same for all groups).
+    if (m_texturesUploaded && m_textureManager->hasTextures() &&
+        m_descriptorSet != VK_NULL_HANDLE) {
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                m_pipelineLayout, 0, 1, &m_descriptorSet,
+                                0, nullptr);
+    }
 
-    VkDeviceSize offset = 0;
-    vkCmdBindVertexBuffers(cmd, 0, 1, &m_vertexBuffer, &offset);
+    VkDeviceSize vboffset = 0;
+    vkCmdBindVertexBuffers(cmd, 0, 1, &m_vertexBuffer, &vboffset);
     vkCmdBindIndexBuffer(cmd, m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-    vkCmdDrawIndexed(cmd, static_cast<uint32_t>(m_indexCount), 1, 0, 0, 0);
+    for (const auto& group : m_drawGroups) {
+        if (group.indexCount == 0) continue;
+
+        float pc[5] = {
+            static_cast<float>(m_fbWidth),
+            static_cast<float>(m_fbHeight),
+            (m_winWidth > 0) ? static_cast<float>(m_fbWidth) / m_winWidth : 1.0f,
+            (m_winHeight > 0) ? static_cast<float>(m_fbHeight) / m_winHeight : 1.0f,
+            static_cast<float>(group.textureLayer),
+        };
+        vkCmdPushConstants(cmd, m_pipelineLayout,
+                           VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                           0, 20, pc);
+
+        vkCmdDrawIndexed(cmd, static_cast<uint32_t>(group.indexCount), 1,
+                         static_cast<uint32_t>(group.indexOffset),
+                         static_cast<int32_t>(group.vertexOffset), 0);
+    }
 
     vkCmdEndRendering(cmd);
 
@@ -821,72 +983,62 @@ void VulkanRenderer::drawBatch(uint32_t imageIndex) {
 bool VulkanRenderer::drawFrame() {
     if (!m_valid) return false;
 
-    // Recreate swapchain-dependent resources if the window was resized or the
-    // swapchain went out of date.
     if (m_swapchainOutdated) {
         if (!recreateSwapchain()) return false;
     }
 
-    // Wait for the previous frame to finish using this frame's resources.
-    VkResult res = vkWaitForFences(m_device, 1,
-                                   &m_inFlightFences[m_currentFrame], VK_TRUE,
+    VkResult res = vkWaitForFences(m_device, 1, &m_inFlightFence, VK_TRUE,
                                    UINT64_MAX);
     if (!checkValidationResult(res, "vkWaitForFences")) return false;
-    res = vkResetFences(m_device, 1, &m_inFlightFences[m_currentFrame]);
+    res = vkResetFences(m_device, 1, &m_inFlightFence);
     if (!checkValidationResult(res, "vkResetFences")) return false;
 
-    // Acquire the next swapchain image.
     uint32_t imageIndex = 0;
     res = vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX,
-                                m_imageAvailableSemaphores[m_currentFrame],
-                                VK_NULL_HANDLE, &imageIndex);
-
+                                m_imageAvailableSemaphore, VK_NULL_HANDLE,
+                                &imageIndex);
     if (res == VK_ERROR_OUT_OF_DATE_KHR) {
         m_swapchainOutdated = true;
-        return true;  // will recreate on the next frame
+        return true;
     }
     if (res != VK_SUCCESS && res != VK_SUBOPTIMAL_KHR) {
         return checkValidationResult(res, "vkAcquireNextImageKHR");
     }
 
-    // Rebuild the CPU-updated vertex/index batch and record the command buffer.
-    buildBatch();
-    drawBatch(imageIndex);
+    // Rebuild CPU batch and record commands.
+    buildBatches();
+    drawBatches(imageIndex);
 
-    // Submit to the graphics queue.
     VkPipelineStageFlags waitStage =
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     VkSubmitInfo submit{};
     submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit.waitSemaphoreCount = 1;
-    submit.pWaitSemaphores = &m_imageAvailableSemaphores[m_currentFrame];
+    submit.pWaitSemaphores = &m_imageAvailableSemaphore;
     submit.pWaitDstStageMask = &waitStage;
     submit.commandBufferCount = 1;
-    submit.pCommandBuffers = &m_commandBuffers[m_currentFrame];
+    submit.pCommandBuffers = &m_commandBuffer;
     submit.signalSemaphoreCount = 1;
-    submit.pSignalSemaphores = &m_renderFinishedSemaphores[m_currentFrame];
+    submit.pSignalSemaphores = &m_renderFinishedSemaphore;
 
-    res = vkQueueSubmit(m_graphicsQueue, 1, &submit,
-                        m_inFlightFences[m_currentFrame]);
+    res = vkQueueSubmit(m_graphicsQueue, 1, &submit, m_inFlightFence);
     if (!checkValidationResult(res, "vkQueueSubmit")) return false;
 
-    // Present.
     VkPresentInfoKHR present{};
     present.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     present.waitSemaphoreCount = 1;
-    present.pWaitSemaphores = &m_renderFinishedSemaphores[m_currentFrame];
+    present.pWaitSemaphores = &m_renderFinishedSemaphore;
     present.swapchainCount = 1;
     present.pSwapchains = &m_swapchain;
     present.pImageIndices = &imageIndex;
 
-    res = vkQueuePresentKHR(m_presentQueue, &present);
+    res = vkQueuePresentKHR(m_graphicsQueue, &present);
     if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_SUBOPTIMAL_KHR) {
         m_swapchainOutdated = true;
     } else if (!checkValidationResult(res, "vkQueuePresentKHR")) {
         return false;
     }
 
-    m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     return true;
 }
 
