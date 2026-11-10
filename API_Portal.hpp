@@ -5,12 +5,15 @@
 // The framework is now Vulkan-backed. The public surface is:
 //   - Window        : GLFW window (Vulkan, no OpenGL context) + size/cursor
 //   - VulkanRenderer: Vulkan device/swapchain/pipeline + batched rectangle
-//                     rendering + click dispatch
+//                     and dedicated text rendering + click dispatch
 //   - Rectangle     : widget with top-left origin, color, and onClick callback
+//   - TextLabel      : baseline-positioned label rendered from the dedicated
+//                     FreeType glyph texture array and text geometry batch
 //
 // Include the implementation headers directly. This header is kept as the
 // project's API entry point for compatibility with the original layout.
 
 #include "Window.hpp"
 #include "Rectangle.hpp"
+#include "Text.hpp"
 #include "VulkanRenderer.hpp"

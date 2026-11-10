@@ -30,7 +30,10 @@ layout(push_constant) uniform PushConstants {
 void main() {
     vec2 fbPos = inPosition * pc.scale;
     float ndcX = (2.0 * fbPos.x / pc.viewport.x) - 1.0;
-    float ndcY = 1.0 - (2.0 * fbPos.y / pc.viewport.y);
+    // With Vulkan's positive-height viewport, NDC y=-1 maps to the top of
+    // the framebuffer. Keep the screen's top-left origin by mapping top y=0
+    // to -1 (not +1).
+    float ndcY = (2.0 * fbPos.y / pc.viewport.y) - 1.0;
     gl_Position = vec4(ndcX, ndcY, 0.0, 1.0);
     fragColor = inColor;
     fragUV = inUV;

@@ -5,9 +5,14 @@
 #include <cstring>
 #include <iostream>
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <cstdint>
 #include <limits>
+
+#ifndef FONT_PATH
+#define FONT_PATH "/System/Library/Fonts/SFNS.ttf"
+#endif
 
 VulkanRenderer::VulkanRenderer() {
     m_textureManager = new TextureManager();
@@ -115,6 +120,10 @@ bool VulkanRenderer::init(GLFWwindow* window, int fbWidth, int fbHeight,
         std::cerr << "Renderer: createGraphicsPipeline failed\n";
         return false;
     }
+    if (!createTextResources()) {
+        std::cerr << "Renderer: createTextResources failed\n";
+        return false;
+    }
 
     m_valid = true;
     std::cout << "Renderer: Vulkan initialized ("
@@ -138,6 +147,8 @@ void VulkanRenderer::cleanup() {
     if (m_device != VK_NULL_HANDLE) vkDeviceWaitIdle(m_device);
 
     cleanupSwapchain();
+
+    destroyTextResources();
 
     if (m_descriptorSetLayout != VK_NULL_HANDLE) {
         vkDestroyDescriptorSetLayout(m_device, m_descriptorSetLayout, nullptr);
@@ -762,6 +773,549 @@ bool VulkanRenderer::createBuffers() {
     return true;
 }
 
+bool VulkanRenderer::createTextResources() {
+    if (!m_fontAtlas.load(FONT_PATH, FONT_RASTER_SIZE)) return false;
+    if (!createTextDescriptorResources()) return false;
+    if (!createGlyphTextureArray()) return false;
+    if (!updateTextDescriptorSet()) return false;
+    if (!createTextBuffers()) return false;
+    if (!createTextPipeline()) return false;
+    return true;
+}
+
+bool VulkanRenderer::createTextDescriptorResources() {
+    VkDescriptorSetLayoutBinding binding{};
+    binding.binding = 0;
+    binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    binding.descriptorCount = 1;
+    binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+    VkDescriptorSetLayoutCreateInfo layoutInfo{};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = 1;
+    layoutInfo.pBindings = &binding;
+    if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr,
+                                    &m_textDescriptorSetLayout) != VK_SUCCESS) {
+        std::cerr << "Text: failed to create glyph descriptor-set layout\n";
+        return false;
+    }
+
+    VkDescriptorPoolSize poolSize{};
+    poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSize.descriptorCount = 1;
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.maxSets = 1;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
+    if (vkCreateDescriptorPool(m_device, &poolInfo, nullptr,
+                               &m_textDescriptorPool) != VK_SUCCESS) {
+        std::cerr << "Text: failed to create glyph descriptor pool\n";
+        return false;
+    }
+
+    VkDescriptorSetAllocateInfo allocateInfo{};
+    allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocateInfo.descriptorPool = m_textDescriptorPool;
+    allocateInfo.descriptorSetCount = 1;
+    allocateInfo.pSetLayouts = &m_textDescriptorSetLayout;
+    if (vkAllocateDescriptorSets(m_device, &allocateInfo,
+                                 &m_textDescriptorSet) != VK_SUCCESS) {
+        std::cerr << "Text: failed to allocate glyph descriptor set\n";
+        return false;
+    }
+    return true;
+}
+
+bool VulkanRenderer::createGlyphTextureArray() {
+    const uint32_t width = static_cast<uint32_t>(m_fontAtlas.width());
+    const uint32_t height = static_cast<uint32_t>(m_fontAtlas.height());
+    const uint32_t layers = m_fontAtlas.layerCount();
+    const auto& pixels = m_fontAtlas.pixels();
+    if (width == 0 || height == 0 || layers == 0 || pixels.empty()) {
+        std::cerr << "Text: glyph atlas is empty\n";
+        return false;
+    }
+
+    VkPhysicalDeviceProperties properties{};
+    vkGetPhysicalDeviceProperties(m_physicalDevice, &properties);
+    if (width > properties.limits.maxImageDimension2D ||
+        height > properties.limits.maxImageDimension2D ||
+        layers > properties.limits.maxImageArrayLayers) {
+        std::cerr << "Text: glyph array exceeds device image limits\n";
+        return false;
+    }
+    VkFormatProperties formatProperties{};
+    vkGetPhysicalDeviceFormatProperties(m_physicalDevice, VK_FORMAT_R8_UNORM,
+                                        &formatProperties);
+    const VkFormatFeatureFlags requiredFeatures =
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_TRANSFER_DST_BIT;
+    if ((formatProperties.optimalTilingFeatures & requiredFeatures) != requiredFeatures) {
+        std::cerr << "Text: device cannot sample/upload VK_FORMAT_R8_UNORM glyphs\n";
+        return false;
+    }
+
+    const VkDeviceSize layerBytes = static_cast<VkDeviceSize>(width) * height;
+    const VkDeviceSize uploadBytes = layerBytes * layers;
+    if (uploadBytes != pixels.size()) {
+        std::cerr << "Text: glyph atlas byte count does not match its dimensions\n";
+        return false;
+    }
+
+    VkBuffer stagingBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
+    auto destroyStaging = [&]() {
+        if (stagingBuffer != VK_NULL_HANDLE)
+            vkDestroyBuffer(m_device, stagingBuffer, nullptr);
+        if (stagingMemory != VK_NULL_HANDLE)
+            vkFreeMemory(m_device, stagingMemory, nullptr);
+    };
+
+    VkBufferCreateInfo stagingInfo{};
+    stagingInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    stagingInfo.size = uploadBytes;
+    stagingInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    stagingInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    if (vkCreateBuffer(m_device, &stagingInfo, nullptr, &stagingBuffer) != VK_SUCCESS) {
+        std::cerr << "Text: failed to create glyph staging buffer\n";
+        return false;
+    }
+
+    VkMemoryRequirements stagingRequirements{};
+    vkGetBufferMemoryRequirements(m_device, stagingBuffer, &stagingRequirements);
+    const uint32_t hostMemoryType = memoryTypeIndex(
+        m_physicalDevice, stagingRequirements.memoryTypeBits,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    if (hostMemoryType == std::numeric_limits<uint32_t>::max()) {
+        std::cerr << "Text: no host-visible coherent memory for glyph upload\n";
+        destroyStaging();
+        return false;
+    }
+
+    VkMemoryAllocateInfo stagingAllocation{};
+    stagingAllocation.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    stagingAllocation.allocationSize = stagingRequirements.size;
+    stagingAllocation.memoryTypeIndex = hostMemoryType;
+    if (vkAllocateMemory(m_device, &stagingAllocation, nullptr,
+                         &stagingMemory) != VK_SUCCESS ||
+        vkBindBufferMemory(m_device, stagingBuffer, stagingMemory, 0) != VK_SUCCESS) {
+        std::cerr << "Text: failed to allocate glyph staging memory\n";
+        destroyStaging();
+        return false;
+    }
+    void* mappedStaging = nullptr;
+    if (vkMapMemory(m_device, stagingMemory, 0, uploadBytes, 0,
+                    &mappedStaging) != VK_SUCCESS) {
+        std::cerr << "Text: failed to map glyph staging memory\n";
+        destroyStaging();
+        return false;
+    }
+    std::memcpy(mappedStaging, pixels.data(), pixels.size());
+    vkUnmapMemory(m_device, stagingMemory);
+
+    VkImageCreateInfo imageInfo{};
+    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageInfo.format = VK_FORMAT_R8_UNORM;
+    imageInfo.extent = {width, height, 1};
+    imageInfo.mipLevels = 1;
+    imageInfo.arrayLayers = layers;
+    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    if (vkCreateImage(m_device, &imageInfo, nullptr,
+                      &m_glyphArrayImage) != VK_SUCCESS) {
+        std::cerr << "Text: failed to create glyph texture array\n";
+        destroyStaging();
+        return false;
+    }
+
+    VkMemoryRequirements imageRequirements{};
+    vkGetImageMemoryRequirements(m_device, m_glyphArrayImage, &imageRequirements);
+    const uint32_t deviceMemoryType = memoryTypeIndex(
+        m_physicalDevice, imageRequirements.memoryTypeBits,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    if (deviceMemoryType == std::numeric_limits<uint32_t>::max()) {
+        std::cerr << "Text: no device-local memory for glyph texture array\n";
+        destroyStaging();
+        return false;
+    }
+    VkMemoryAllocateInfo imageAllocation{};
+    imageAllocation.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    imageAllocation.allocationSize = imageRequirements.size;
+    imageAllocation.memoryTypeIndex = deviceMemoryType;
+    if (vkAllocateMemory(m_device, &imageAllocation, nullptr,
+                         &m_glyphArrayMemory) != VK_SUCCESS ||
+        vkBindImageMemory(m_device, m_glyphArrayImage, m_glyphArrayMemory, 0) != VK_SUCCESS) {
+        std::cerr << "Text: failed to allocate glyph image memory\n";
+        destroyStaging();
+        return false;
+    }
+
+    VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+    VkCommandBufferAllocateInfo commandAllocation{};
+    commandAllocation.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    commandAllocation.commandPool = m_commandPool;
+    commandAllocation.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    commandAllocation.commandBufferCount = 1;
+    if (vkAllocateCommandBuffers(m_device, &commandAllocation,
+                                 &commandBuffer) != VK_SUCCESS) {
+        std::cerr << "Text: failed to allocate glyph upload command buffer\n";
+        destroyStaging();
+        return false;
+    }
+
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    VkResult result = vkBeginCommandBuffer(commandBuffer, &beginInfo);
+    if (result == VK_SUCCESS) {
+        VkImageMemoryBarrier toTransfer{};
+        toTransfer.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        toTransfer.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        toTransfer.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        toTransfer.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        toTransfer.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        toTransfer.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        toTransfer.image = m_glyphArrayImage;
+        toTransfer.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, layers};
+        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                             VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr,
+                             0, nullptr, 1, &toTransfer);
+
+        VkBufferImageCopy copy{};
+        copy.imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, layers};
+        copy.imageExtent = {width, height, 1};
+        vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, m_glyphArrayImage,
+                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
+
+        VkImageMemoryBarrier toShader{};
+        toShader.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        toShader.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        toShader.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        toShader.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        toShader.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        toShader.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        toShader.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        toShader.image = m_glyphArrayImage;
+        toShader.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, layers};
+        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                             VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
+                             0, nullptr, 0, nullptr, 1, &toShader);
+        result = vkEndCommandBuffer(commandBuffer);
+    }
+
+    VkFence uploadFence = VK_NULL_HANDLE;
+    if (result == VK_SUCCESS) {
+        VkFenceCreateInfo fenceInfo{};
+        fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        result = vkCreateFence(m_device, &fenceInfo, nullptr, &uploadFence);
+    }
+    if (result == VK_SUCCESS) {
+        VkSubmitInfo submit{};
+        submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submit.commandBufferCount = 1;
+        submit.pCommandBuffers = &commandBuffer;
+        result = vkQueueSubmit(m_graphicsQueue, 1, &submit, uploadFence);
+        if (result == VK_SUCCESS)
+            result = vkWaitForFences(m_device, 1, &uploadFence, VK_TRUE, UINT64_MAX);
+    }
+    if (uploadFence != VK_NULL_HANDLE) vkDestroyFence(m_device, uploadFence, nullptr);
+    vkFreeCommandBuffers(m_device, m_commandPool, 1, &commandBuffer);
+    destroyStaging();
+    if (result != VK_SUCCESS) {
+        std::cerr << "Text: glyph upload command failed with VkResult " << result << '\n';
+        return false;
+    }
+
+    VkImageViewCreateInfo viewInfo{};
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image = m_glyphArrayImage;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+    viewInfo.format = VK_FORMAT_R8_UNORM;
+    viewInfo.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, layers};
+    if (vkCreateImageView(m_device, &viewInfo, nullptr,
+                          &m_glyphArrayImageView) != VK_SUCCESS) {
+        std::cerr << "Text: failed to create glyph array image view\n";
+        return false;
+    }
+
+    VkSamplerCreateInfo samplerInfo{};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = VK_FILTER_LINEAR;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+    samplerInfo.maxAnisotropy = 1.0f;
+    samplerInfo.maxLod = 0.0f;
+    if (vkCreateSampler(m_device, &samplerInfo, nullptr,
+                        &m_glyphSampler) != VK_SUCCESS) {
+        std::cerr << "Text: failed to create glyph sampler\n";
+        return false;
+    }
+    return true;
+}
+
+bool VulkanRenderer::updateTextDescriptorSet() {
+    if (m_textDescriptorSet == VK_NULL_HANDLE ||
+        m_glyphArrayImageView == VK_NULL_HANDLE ||
+        m_glyphSampler == VK_NULL_HANDLE) return false;
+
+    VkDescriptorImageInfo imageInfo{};
+    imageInfo.sampler = m_glyphSampler;
+    imageInfo.imageView = m_glyphArrayImageView;
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    VkWriteDescriptorSet write{};
+    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    write.dstSet = m_textDescriptorSet;
+    write.dstBinding = 0;
+    write.descriptorCount = 1;
+    write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    write.pImageInfo = &imageInfo;
+    vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
+    return true;
+}
+
+bool VulkanRenderer::createTextBuffers() {
+    constexpr VkDeviceSize floatsPerVertex = 9;
+    constexpr VkDeviceSize verticesPerGlyph = 4;
+    constexpr VkDeviceSize indicesPerGlyph = 6;
+    const VkDeviceSize vertexBytes = MAX_TEXT_GLYPHS * verticesPerGlyph *
+                                     floatsPerVertex * sizeof(float);
+    const VkDeviceSize indexBytes = MAX_TEXT_GLYPHS * indicesPerGlyph * sizeof(uint32_t);
+
+    auto createMappedBuffer = [this](VkDeviceSize size, VkBufferUsageFlags usage,
+                                     VkBuffer& buffer, VkDeviceMemory& memory,
+                                     void** mapped) -> bool {
+        VkBufferCreateInfo bufferInfo{};
+        bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferInfo.size = size;
+        bufferInfo.usage = usage;
+        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        if (vkCreateBuffer(m_device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
+            return false;
+        VkMemoryRequirements requirements{};
+        vkGetBufferMemoryRequirements(m_device, buffer, &requirements);
+        const uint32_t type = memoryTypeIndex(
+            m_physicalDevice, requirements.memoryTypeBits,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        if (type == std::numeric_limits<uint32_t>::max()) return false;
+        VkMemoryAllocateInfo allocation{};
+        allocation.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocation.allocationSize = requirements.size;
+        allocation.memoryTypeIndex = type;
+        if (vkAllocateMemory(m_device, &allocation, nullptr, &memory) != VK_SUCCESS ||
+            vkBindBufferMemory(m_device, buffer, memory, 0) != VK_SUCCESS)
+            return false;
+        return vkMapMemory(m_device, memory, 0, size, 0, mapped) == VK_SUCCESS;
+    };
+
+    void* vertexData = nullptr;
+    if (!createMappedBuffer(vertexBytes, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                            m_textVertexBuffer, m_textVertexBufferMemory,
+                            &vertexData)) {
+        std::cerr << "Text: failed to allocate text vertex buffer\n";
+        return false;
+    }
+    m_textVertexMapped = static_cast<float*>(vertexData);
+
+    void* indexData = nullptr;
+    if (!createMappedBuffer(indexBytes, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                            m_textIndexBuffer, m_textIndexBufferMemory,
+                            &indexData)) {
+        std::cerr << "Text: failed to allocate text index buffer\n";
+        return false;
+    }
+    m_textIndexMapped = static_cast<uint32_t*>(indexData);
+    return true;
+}
+
+bool VulkanRenderer::createTextPipeline() {
+    const auto vertexCode = readFile(m_shaderDir + "/text.vert.spv");
+    const auto fragmentCode = readFile(m_shaderDir + "/text.frag.spv");
+    if (vertexCode.empty() || fragmentCode.empty()) {
+        std::cerr << "Text: missing text.vert.spv or text.frag.spv in "
+                  << m_shaderDir << '\n';
+        return false;
+    }
+    VkShaderModule vertexModule = createShaderModule(m_device, vertexCode);
+    VkShaderModule fragmentModule = createShaderModule(m_device, fragmentCode);
+    if (vertexModule == VK_NULL_HANDLE || fragmentModule == VK_NULL_HANDLE) {
+        if (vertexModule != VK_NULL_HANDLE) vkDestroyShaderModule(m_device, vertexModule, nullptr);
+        if (fragmentModule != VK_NULL_HANDLE) vkDestroyShaderModule(m_device, fragmentModule, nullptr);
+        return false;
+    }
+
+    VkPipelineShaderStageCreateInfo stages[2]{};
+    stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+    stages[0].module = vertexModule;
+    stages[0].pName = "main";
+    stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    stages[1].module = fragmentModule;
+    stages[1].pName = "main";
+
+    VkVertexInputBindingDescription binding{};
+    binding.binding = 0;
+    binding.stride = 9 * sizeof(float);
+    binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    VkVertexInputAttributeDescription attributes[4]{};
+    // VkVertexInputAttributeDescription field order is location, binding,
+    // format, offset (not binding, location, format, offset).
+    attributes[0] = {0, 0, VK_FORMAT_R32G32_SFLOAT, 0};
+    attributes[1] = {1, 0, VK_FORMAT_R32G32B32A32_SFLOAT, 2 * sizeof(float)};
+    attributes[2] = {2, 0, VK_FORMAT_R32G32_SFLOAT, 6 * sizeof(float)};
+    attributes[3] = {3, 0, VK_FORMAT_R32_SFLOAT, 8 * sizeof(float)};
+    VkPipelineVertexInputStateCreateInfo vertexInput{};
+    vertexInput.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertexInput.vertexBindingDescriptionCount = 1;
+    vertexInput.pVertexBindingDescriptions = &binding;
+    vertexInput.vertexAttributeDescriptionCount = 4;
+    vertexInput.pVertexAttributeDescriptions = attributes;
+
+    VkPipelineInputAssemblyStateCreateInfo assembly{};
+    assembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    assembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+    VkPipelineViewportStateCreateInfo viewport{};
+    viewport.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    viewport.viewportCount = 1;
+    viewport.scissorCount = 1;
+
+    VkPipelineRasterizationStateCreateInfo raster{};
+    raster.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    raster.polygonMode = VK_POLYGON_MODE_FILL;
+    raster.cullMode = VK_CULL_MODE_NONE;
+    raster.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    raster.lineWidth = 1.0f;
+
+    VkPipelineMultisampleStateCreateInfo multisample{};
+    multisample.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    multisample.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+    VkPipelineColorBlendAttachmentState blend{};
+    blend.blendEnable = VK_TRUE;
+    blend.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    blend.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    blend.colorBlendOp = VK_BLEND_OP_ADD;
+    blend.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+    blend.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    blend.alphaBlendOp = VK_BLEND_OP_ADD;
+    blend.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    VkPipelineColorBlendStateCreateInfo colorBlend{};
+    colorBlend.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    colorBlend.attachmentCount = 1;
+    colorBlend.pAttachments = &blend;
+
+    VkDynamicState dynamicStates[] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+    VkPipelineDynamicStateCreateInfo dynamic{};
+    dynamic.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamic.dynamicStateCount = 2;
+    dynamic.pDynamicStates = dynamicStates;
+
+    VkPushConstantRange pushConstants{};
+    pushConstants.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    pushConstants.size = 4 * sizeof(float);
+    VkPipelineLayoutCreateInfo layoutInfo{};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    layoutInfo.setLayoutCount = 1;
+    layoutInfo.pSetLayouts = &m_textDescriptorSetLayout;
+    layoutInfo.pushConstantRangeCount = 1;
+    layoutInfo.pPushConstantRanges = &pushConstants;
+    if (vkCreatePipelineLayout(m_device, &layoutInfo, nullptr,
+                               &m_textPipelineLayout) != VK_SUCCESS) {
+        vkDestroyShaderModule(m_device, vertexModule, nullptr);
+        vkDestroyShaderModule(m_device, fragmentModule, nullptr);
+        std::cerr << "Text: failed to create text pipeline layout\n";
+        return false;
+    }
+
+    VkPipelineRenderingCreateInfo rendering{};
+    rendering.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+    rendering.colorAttachmentCount = 1;
+    rendering.pColorAttachmentFormats = &m_swapchainFormat;
+    VkGraphicsPipelineCreateInfo pipelineInfo{};
+    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipelineInfo.pNext = &rendering;
+    pipelineInfo.stageCount = 2;
+    pipelineInfo.pStages = stages;
+    pipelineInfo.pVertexInputState = &vertexInput;
+    pipelineInfo.pInputAssemblyState = &assembly;
+    pipelineInfo.pViewportState = &viewport;
+    pipelineInfo.pRasterizationState = &raster;
+    pipelineInfo.pMultisampleState = &multisample;
+    pipelineInfo.pColorBlendState = &colorBlend;
+    pipelineInfo.pDynamicState = &dynamic;
+    pipelineInfo.layout = m_textPipelineLayout;
+    pipelineInfo.renderPass = VK_NULL_HANDLE;
+
+    const VkResult result = vkCreateGraphicsPipelines(
+        m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_textPipeline);
+    vkDestroyShaderModule(m_device, vertexModule, nullptr);
+    vkDestroyShaderModule(m_device, fragmentModule, nullptr);
+    if (result != VK_SUCCESS) {
+        std::cerr << "Text: failed to create text graphics pipeline (VkResult "
+                  << result << ")\n";
+        return false;
+    }
+    return true;
+}
+
+void VulkanRenderer::destroyTextResources() {
+    if (m_device == VK_NULL_HANDLE) return;
+
+    if (m_textPipeline != VK_NULL_HANDLE) vkDestroyPipeline(m_device, m_textPipeline, nullptr);
+    m_textPipeline = VK_NULL_HANDLE;
+    if (m_textPipelineLayout != VK_NULL_HANDLE)
+        vkDestroyPipelineLayout(m_device, m_textPipelineLayout, nullptr);
+    m_textPipelineLayout = VK_NULL_HANDLE;
+
+    if (m_textDescriptorPool != VK_NULL_HANDLE)
+        vkDestroyDescriptorPool(m_device, m_textDescriptorPool, nullptr);
+    m_textDescriptorPool = VK_NULL_HANDLE;
+    m_textDescriptorSet = VK_NULL_HANDLE;
+    if (m_textDescriptorSetLayout != VK_NULL_HANDLE)
+        vkDestroyDescriptorSetLayout(m_device, m_textDescriptorSetLayout, nullptr);
+    m_textDescriptorSetLayout = VK_NULL_HANDLE;
+
+    if (m_glyphSampler != VK_NULL_HANDLE) vkDestroySampler(m_device, m_glyphSampler, nullptr);
+    m_glyphSampler = VK_NULL_HANDLE;
+    if (m_glyphArrayImageView != VK_NULL_HANDLE)
+        vkDestroyImageView(m_device, m_glyphArrayImageView, nullptr);
+    m_glyphArrayImageView = VK_NULL_HANDLE;
+    if (m_glyphArrayImage != VK_NULL_HANDLE) vkDestroyImage(m_device, m_glyphArrayImage, nullptr);
+    m_glyphArrayImage = VK_NULL_HANDLE;
+    if (m_glyphArrayMemory != VK_NULL_HANDLE) vkFreeMemory(m_device, m_glyphArrayMemory, nullptr);
+    m_glyphArrayMemory = VK_NULL_HANDLE;
+
+    if (m_textVertexMapped && m_textVertexBufferMemory != VK_NULL_HANDLE)
+        vkUnmapMemory(m_device, m_textVertexBufferMemory);
+    m_textVertexMapped = nullptr;
+    if (m_textVertexBuffer != VK_NULL_HANDLE)
+        vkDestroyBuffer(m_device, m_textVertexBuffer, nullptr);
+    m_textVertexBuffer = VK_NULL_HANDLE;
+    if (m_textVertexBufferMemory != VK_NULL_HANDLE)
+        vkFreeMemory(m_device, m_textVertexBufferMemory, nullptr);
+    m_textVertexBufferMemory = VK_NULL_HANDLE;
+
+    if (m_textIndexMapped && m_textIndexBufferMemory != VK_NULL_HANDLE)
+        vkUnmapMemory(m_device, m_textIndexBufferMemory);
+    m_textIndexMapped = nullptr;
+    if (m_textIndexBuffer != VK_NULL_HANDLE)
+        vkDestroyBuffer(m_device, m_textIndexBuffer, nullptr);
+    m_textIndexBuffer = VK_NULL_HANDLE;
+    if (m_textIndexBufferMemory != VK_NULL_HANDLE)
+        vkFreeMemory(m_device, m_textIndexBufferMemory, nullptr);
+    m_textIndexBufferMemory = VK_NULL_HANDLE;
+    m_textIndexCount = 0;
+}
+
 bool VulkanRenderer::createSyncObjects() {
     VkSemaphoreCreateInfo sci{};
     sci.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -896,8 +1450,91 @@ void VulkanRenderer::buildBatches() {
     }
 }
 
+void VulkanRenderer::buildTextBatch() {
+    m_textIndexCount = 0;
+    if (!m_textVertexMapped || !m_textIndexMapped || !m_fontAtlas.valid()) return;
+
+    uint32_t glyphCount = 0;
+    bool capacityWarningPrinted = false;
+    const float atlasWidth = static_cast<float>(m_fontAtlas.width());
+    const float atlasHeight = static_cast<float>(m_fontAtlas.height());
+
+    auto writeGlyphQuad = [&](float left, float top, float width, float height,
+                              const FontGlyph& glyph, const TextLabel& label) {
+        if (glyphCount >= MAX_TEXT_GLYPHS) {
+            if (!capacityWarningPrinted) {
+                std::cerr << "Text: batch limit of " << MAX_TEXT_GLYPHS
+                          << " glyphs reached; remaining text was truncated\n";
+                capacityWarningPrinted = true;
+            }
+            return false;
+        }
+
+        const float right = left + width;
+        const float bottom = top + height;
+        const float uRight = static_cast<float>(glyph.width) / atlasWidth;
+        const float vBottom = static_cast<float>(glyph.height) / atlasHeight;
+        const float corners[4][9] = {
+            {left,  top,    label.color[0], label.color[1], label.color[2], label.color[3], 0.0f, 0.0f, static_cast<float>(glyph.layer)},
+            {right, top,    label.color[0], label.color[1], label.color[2], label.color[3], uRight, 0.0f, static_cast<float>(glyph.layer)},
+            {right, bottom, label.color[0], label.color[1], label.color[2], label.color[3], uRight, vBottom, static_cast<float>(glyph.layer)},
+            {left,  bottom, label.color[0], label.color[1], label.color[2], label.color[3], 0.0f, vBottom, static_cast<float>(glyph.layer)},
+        };
+        const uint32_t baseVertex = glyphCount * 4;
+        float* vertex = m_textVertexMapped + static_cast<size_t>(baseVertex) * 9;
+        for (size_t corner = 0; corner < 4; ++corner)
+            std::copy_n(corners[corner], 9, vertex + corner * 9);
+
+        uint32_t* indices = m_textIndexMapped + static_cast<size_t>(glyphCount) * 6;
+        indices[0] = baseVertex;
+        indices[1] = baseVertex + 1;
+        indices[2] = baseVertex + 2;
+        indices[3] = baseVertex;
+        indices[4] = baseVertex + 2;
+        indices[5] = baseVertex + 3;
+        ++glyphCount;
+        return true;
+    };
+
+    for (const TextLabel* label : m_textLabels) {
+        if (!label || !label->visible || label->text.empty() ||
+            !std::isfinite(label->scale) || label->scale <= 0.0f) continue;
+
+        float cursorX = label->x;
+        float baselineY = label->baselineY;
+        for (unsigned char character : label->text) {
+            if (character == '\n') {
+                cursorX = label->x;
+                baselineY += static_cast<float>(m_fontAtlas.lineHeight()) * label->scale;
+                continue;
+            }
+            if (character == '\r') continue;
+
+            const FontGlyph* glyph = m_fontAtlas.glyph(character);
+            if (!glyph) continue;
+            if (character == '\t') {
+                const FontGlyph* space = m_fontAtlas.glyph(' ');
+                cursorX += (space ? space->advance : 12.0f) * 4.0f * label->scale;
+                continue;
+            }
+
+            if (glyph->width > 0 && glyph->height > 0) {
+                const float left = cursorX + glyph->bearingX * label->scale;
+                const float top = baselineY - glyph->bearingY * label->scale;
+                const bool written = writeGlyphQuad(
+                    left, top, glyph->width * label->scale,
+                    glyph->height * label->scale, *glyph, *label);
+                if (!written) break;
+            }
+            cursorX += glyph->advance * label->scale;
+        }
+        if (glyphCount >= MAX_TEXT_GLYPHS) break;
+    }
+    m_textIndexCount = glyphCount * 6;
+}
+
 void VulkanRenderer::drawBatches(uint32_t imageIndex) {
-    if (m_drawGroups.empty()) return;
+    if (m_drawGroups.empty() && m_textIndexCount == 0) return;
 
     VkCommandBuffer cmd = m_commandBuffer;
 
@@ -926,8 +1563,6 @@ void VulkanRenderer::drawBatches(uint32_t imageIndex) {
     rendering.pColorAttachments = &colorAttach;
     vkCmdBeginRendering(cmd, &rendering);
 
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
-
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
@@ -939,35 +1574,62 @@ void VulkanRenderer::drawBatches(uint32_t imageIndex) {
     vkCmdSetViewport(cmd, 0, 1, &viewport);
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
-    // Bind descriptor set once (same for all groups).
-    if (m_texturesUploaded && m_textureManager->hasTextures() &&
-        m_descriptorSet != VK_NULL_HANDLE) {
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                m_pipelineLayout, 0, 1, &m_descriptorSet,
-                                0, nullptr);
+    if (!m_drawGroups.empty()) {
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+
+        if (m_texturesUploaded && m_textureManager->hasTextures() &&
+            m_descriptorSet != VK_NULL_HANDLE) {
+            vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                    m_pipelineLayout, 0, 1, &m_descriptorSet,
+                                    0, nullptr);
+        }
+
+        VkDeviceSize vertexOffset = 0;
+        vkCmdBindVertexBuffers(cmd, 0, 1, &m_vertexBuffer, &vertexOffset);
+        vkCmdBindIndexBuffer(cmd, m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+        for (const auto& group : m_drawGroups) {
+            if (group.indexCount == 0) continue;
+
+            float pc[5] = {
+                static_cast<float>(m_fbWidth),
+                static_cast<float>(m_fbHeight),
+                (m_winWidth > 0) ? static_cast<float>(m_fbWidth) / m_winWidth : 1.0f,
+                (m_winHeight > 0) ? static_cast<float>(m_fbHeight) / m_winHeight : 1.0f,
+                static_cast<float>(group.textureLayer),
+            };
+            vkCmdPushConstants(cmd, m_pipelineLayout,
+                               VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                               0, 20, pc);
+
+            vkCmdDrawIndexed(cmd, static_cast<uint32_t>(group.indexCount), 1,
+                             static_cast<uint32_t>(group.indexOffset),
+                             static_cast<int32_t>(group.vertexOffset), 0);
+        }
     }
 
-    VkDeviceSize vboffset = 0;
-    vkCmdBindVertexBuffers(cmd, 0, 1, &m_vertexBuffer, &vboffset);
-    vkCmdBindIndexBuffer(cmd, m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+    // Text is rendered after UI rectangles from a completely separate batch,
+    // descriptor set, glyph array, and graphics pipeline.
+    if (m_textIndexCount > 0) {
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_textPipeline);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                m_textPipelineLayout, 0, 1,
+                                &m_textDescriptorSet, 0, nullptr);
+        VkDeviceSize textVertexOffset = 0;
+        vkCmdBindVertexBuffers(cmd, 0, 1, &m_textVertexBuffer,
+                               &textVertexOffset);
+        vkCmdBindIndexBuffer(cmd, m_textIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-    for (const auto& group : m_drawGroups) {
-        if (group.indexCount == 0) continue;
-
-        float pc[5] = {
+        const float textPushConstants[4] = {
             static_cast<float>(m_fbWidth),
             static_cast<float>(m_fbHeight),
             (m_winWidth > 0) ? static_cast<float>(m_fbWidth) / m_winWidth : 1.0f,
             (m_winHeight > 0) ? static_cast<float>(m_fbHeight) / m_winHeight : 1.0f,
-            static_cast<float>(group.textureLayer),
         };
-        vkCmdPushConstants(cmd, m_pipelineLayout,
-                           VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                           0, 20, pc);
-
-        vkCmdDrawIndexed(cmd, static_cast<uint32_t>(group.indexCount), 1,
-                         static_cast<uint32_t>(group.indexOffset),
-                         static_cast<int32_t>(group.vertexOffset), 0);
+        vkCmdPushConstants(cmd, m_textPipelineLayout,
+                           VK_SHADER_STAGE_VERTEX_BIT, 0,
+                           sizeof(textPushConstants), textPushConstants);
+        vkCmdDrawIndexed(cmd, m_textIndexCount, 1, 0, 0, 0);
     }
 
     vkCmdEndRendering(cmd);
@@ -1007,6 +1669,7 @@ bool VulkanRenderer::drawFrame() {
 
     // Rebuild CPU batch and record commands.
     buildBatches();
+    buildTextBatch();
     drawBatches(imageIndex);
 
     VkPipelineStageFlags waitStage =
@@ -1055,4 +1718,16 @@ void VulkanRenderer::removeRectangle(Rectangle* rect) {
     m_rectangles.erase(
         std::remove(m_rectangles.begin(), m_rectangles.end(), rect),
         m_rectangles.end());
+}
+
+int VulkanRenderer::addText(TextLabel* text) {
+    if (!text) return -1;
+    m_textLabels.push_back(text);
+    return static_cast<int>(m_textLabels.size()) - 1;
+}
+
+void VulkanRenderer::removeText(TextLabel* text) {
+    m_textLabels.erase(
+        std::remove(m_textLabels.begin(), m_textLabels.end(), text),
+        m_textLabels.end());
 }

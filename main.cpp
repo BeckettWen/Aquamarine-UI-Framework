@@ -15,6 +15,7 @@
 #include "VulkanRenderer.hpp"
 #include "Rectangle.hpp"
 #include "Texture.hpp"
+#include "Text.hpp"
 
 #include <iostream>
 #include <memory>
@@ -42,6 +43,7 @@ int main() {
                        window.width(), window.height(),
                        "Shaders")) {
         std::cerr << "Demo: failed to initialize Vulkan renderer\n";
+        renderer.destroy();
         glfwTerminate();
         return 1;
     }
@@ -129,6 +131,18 @@ int main() {
     // The renderer stores non-owning pointers; rects must outlive renderer.
     for (auto& r : rects)
         renderer.addRectangle(&r);
+
+    // Text uses an independent glyph texture array, descriptor set, pipeline,
+    // and vertex/index batch. Coordinates are top-left-origin; y is the font
+    // baseline in logical window pixels.
+    std::vector<TextLabel> labels;
+    labels.reserve(2);
+    labels.push_back({"LYRA / CLOUDSDALE", 50.0f, 465.0f, 0.72f,
+                      {1.0f, 1.0f, 1.0f, 1.0f}, true});
+    labels.push_back({"TEXT HAS ITS OWN GLYPH ARRAY", 50.0f, 515.0f, 0.42f,
+                      {0.65f, 0.85f, 1.0f, 1.0f}, true});
+    for (auto& label : labels)
+        renderer.addText(&label);
 
     while (!window.shouldClose()) {
         window.pollEvents();
