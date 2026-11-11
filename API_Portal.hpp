@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Version.hpp"
+
 // X-19 (Lyra) public API portal — Vulkan-based backend.
 //
 // The framework is now Vulkan-backed. The public surface is:

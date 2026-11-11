@@ -1,10 +1,32 @@
 cmake_minimum_required(VERSION 3.15)
-project(X19 VERSION 0.2 LANGUAGES CXX)
+
+# Version.hpp is the single source of truth for package metadata and runtime
+# version reporting. Fail during configure if it is missing/incomplete.
+set(LYRA_VERSION_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/Version.hpp")
+if(NOT EXISTS "${LYRA_VERSION_HEADER}")
+    message(FATAL_ERROR "Required version header is missing: ${LYRA_VERSION_HEADER}")
+endif()
+file(READ "${LYRA_VERSION_HEADER}" LYRA_VERSION_HEADER_CONTENT)
+foreach(component MAJOR MINOR PATCH)
+    string(REGEX MATCH
+        "#define LYRA_VERSION_${component} +([0-9]+)"
+        version_match "${LYRA_VERSION_HEADER_CONTENT}")
+    if(NOT version_match)
+        message(FATAL_ERROR
+            "Version.hpp must define numeric LYRA_VERSION_${component}")
+    endif()
+    set(LYRA_VERSION_${component} "${CMAKE_MATCH_1}")
+endforeach()
+
+project(Lyra VERSION "${LYRA_VERSION_MAJOR}.${LYRA_VERSION_MINOR}.${LYRA_VERSION_PATCH}"
+        LANGUAGES CXX)
+
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${LYRA_VERSION_HEADER}")
 
 # Lyra (Cloudsdale) — Vulkan-based UI framework with texturing and animation.
 # Active renderer: Vulkan only (no OpenGL / GLEW in the active build).
 
-set(CMAKE_CONFIGURE_DEPENDS "CMakeLists.txt")
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -33,6 +55,7 @@ endif()
 # Executable
 # ---------------------------------------------------------------------------
 add_executable(x19
+    Version.hpp
     main.cpp
     API_Portal.hpp
     Window.hpp
@@ -84,6 +107,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 include(CTest)
 if(BUILD_TESTING)
     add_executable(text_atlas_test
+        Version.hpp
         Text.cpp
         tests/TextAtlasTest.cpp
     )
@@ -95,6 +119,7 @@ if(BUILD_TESTING)
     add_test(NAME text_atlas_smoke COMMAND text_atlas_test)
 
     add_executable(mouse_dispatch_test
+        Version.hpp
         Animation.cpp
         VulkanRenderer.cpp
         Texture.cpp
@@ -108,6 +133,7 @@ if(BUILD_TESTING)
     add_test(NAME mouse_dispatch COMMAND mouse_dispatch_test)
 
     add_executable(animation_test
+        Version.hpp
         Animation.cpp
         tests/AnimationTest.cpp
     )

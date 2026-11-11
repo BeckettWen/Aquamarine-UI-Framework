@@ -1,6 +1,7 @@
 #include "VulkanRenderer.hpp"
 #include "Texture.hpp"
 #include "Rectangle.hpp"
+#include "Version.hpp"
 
 #include <cstring>
 #include <iostream>
@@ -247,10 +248,11 @@ bool VulkanRenderer::createInstance() {
 
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = "X-19 Vulkan";
-    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+    appInfo.pApplicationName = lyra::version::projectName;
+    appInfo.applicationVersion = VK_MAKE_VERSION(
+        lyra::version::major, lyra::version::minor, lyra::version::patch);
     appInfo.pEngineName = "Lyra / Cloudsdale";
-    appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+    appInfo.engineVersion = appInfo.applicationVersion;
     appInfo.apiVersion = VK_API_VERSION_1_4;
 
     VkInstanceCreateInfo createInfo{};

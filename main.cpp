@@ -12,6 +12,7 @@
 //   ./run.sh
 
 #include "Window.hpp"
+#include "Version.hpp"
 #include "VulkanRenderer.hpp"
 #include "Rectangle.hpp"
 #include "Texture.hpp"
@@ -22,6 +23,8 @@
 #include <vector>
 
 int main() {
+    std::cout << lyra::version::projectName << " " << lyra::version::string
+              << " (" << lyra::version::codename << ")\n";
     if (!glfwInit()) {
         std::cerr << "Demo: failed to initialize GLFW\n";
         return 1;
@@ -31,7 +34,10 @@ int main() {
     const int winH = 600;
 
     Window window;
-    if (!window.create(winW, winH, "Lyra Cloudsdale — Animation and Input")) {
+    const std::string windowTitle =
+        std::string(lyra::version::projectName) + " " + lyra::version::string +
+        " (" + lyra::version::codename + ") — Animation and Input";
+    if (!window.create(winW, winH, windowTitle.c_str())) {
         std::cerr << "Demo: failed to create GLFW window\n";
         glfwTerminate();
         return 1;

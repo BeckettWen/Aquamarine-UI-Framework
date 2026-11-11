@@ -8,6 +8,8 @@ loading and text rendered through independent image and glyph texture arrays.
 The animation design adds position animation presets, repeat counts, modified-
 batch detection, and mouse event dispatch.
 
+**Version:** `0.2.0` — **Cloudsdale**
+
 **Backend: Vulkan** (MoltenVK on macOS). OpenGL/GLEW are not part of the
 active build.
 
@@ -92,6 +94,7 @@ Assets/
 Texture.hpp / Texture.cpp      # PPM loader + TextureManager (Vulkan array resources)
 Text.hpp / Text.cpp            # FreeType glyph rasterizer + TextLabel API
 Animation.hpp / Animation.cpp  # linear and cubic Bezier position animation
+Version.hpp                    # required canonical project/version metadata
 Window.hpp / Window.cpp        # GLFW window (Vulkan, no OpenGL)
 Rectangle.hpp / Rectangle.cpp  # rectangle widget + UVs + textureLayer + click
 VulkanRenderer.hpp / VulkanRenderer.cpp  # Vulkan device/swapchain/pipeline/descriptors/batching
@@ -103,6 +106,16 @@ tests/TextAtlasTest.cpp        # CPU-side glyph atlas smoke test
 tests/AnimationTest.cpp        # preset and repeat-count tests
 tests/MouseDispatchTest.cpp    # topmost click dispatch test
 ```
+
+## Version metadata
+
+`Version.hpp` is the single source of truth for the project name, semantic
+version, and codename. CMake reads its numeric version macros to configure the
+package version and fails configuration if the header or required macros are
+missing. The executable includes and uses the header for startup/window and
+Vulkan application metadata, so the version is part of the compile process.
+Update the macros in `Version.hpp` to change the version; do not duplicate the
+version number in CMake or application source.
 
 Legacy OpenGL sources under `Dependencies/` and `OptionalLibs/` remain on disk
 but are **not** part of the active CMake build.
