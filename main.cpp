@@ -1,4 +1,4 @@
-// X-19 Lyra Phase 2 demo — Vulkan-based UI framework with texture engine.
+// Lyra Phase 3 demo — Vulkan UI framework with textures, text, and animation.
 //
 // Displays solid-color and textured rectangles as indexed batch draws,
 // loads PPM P6 textures from project assets at runtime, and dispatches
@@ -31,7 +31,7 @@ int main() {
     const int winH = 600;
 
     Window window;
-    if (!window.create(winW, winH, "X-19 Lyra Phase 2 — Texture Engine")) {
+    if (!window.create(winW, winH, "Lyra Cloudsdale — Animation and Input")) {
         std::cerr << "Demo: failed to create GLFW window\n";
         glfwTerminate();
         return 1;
@@ -51,6 +51,10 @@ int main() {
     window.setResizeCallback([&renderer](int fbw, int fbh, int ww, int wh) {
         renderer.framebufferResized(fbw, fbh, ww, wh);
     });
+    window.setMouseButtonCallback(
+        [&renderer](int button, int action, int mods, double x, double y) {
+            renderer.dispatchMouseButton(button, action, mods, x, y);
+        });
 
     // --- Load textures from project assets (PPM P6) ---
     // These are genuinely loaded at runtime via the PPM loader, not baked
@@ -127,6 +131,18 @@ int main() {
     rects.back().onClick = []() {
         std::cout << "click: tinted checkerboard rectangle\n";
     };
+
+    // Demonstrate both animation presets and the per-animation repeat count.
+    // The red rectangle moves linearly between its start and destination three
+    // times; the renderer detects its changed geometry and rebuilds the batch.
+    if (!rects.front().animateTo(260.0f, 50.0f, 2.5f, 3))
+        std::cerr << "Demo: failed to start linear rectangle animation\n";
+    // The green rectangle follows a cubic Bezier loop (repeatCount 0 = forever).
+    if (!rects[3].animateBezierTo(50.0f, 250.0f,
+                                  250.0f, 250.0f,
+                                  250.0f, 400.0f,
+                                  3.0f, 0))
+        std::cerr << "Demo: failed to start Bezier rectangle animation\n";
 
     // The renderer stores non-owning pointers; rects must outlive renderer.
     for (auto& r : rects)

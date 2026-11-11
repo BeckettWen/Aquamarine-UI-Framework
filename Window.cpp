@@ -21,6 +21,7 @@ bool Window::create(int width, int height, const char* title) {
 
     glfwSetWindowUserPointer(m_window, this);
     glfwSetFramebufferSizeCallback(m_window, onFramebufferResize);
+    glfwSetMouseButtonCallback(m_window, onMouseButton);
 
     glfwGetWindowSize(m_window, &m_width, &m_height);
     glfwGetFramebufferSize(m_window, &m_fbWidth, &m_fbHeight);
@@ -49,6 +50,10 @@ void Window::setResizeCallback(ResizeCallback cb) {
     m_resizeCb = std::move(cb);
 }
 
+void Window::setMouseButtonCallback(MouseButtonCallback cb) {
+    m_mouseButtonCb = std::move(cb);
+}
+
 void Window::onFramebufferResize(GLFWwindow* win, int w, int h) {
     Window* self = static_cast<Window*>(glfwGetWindowUserPointer(win));
     if (!self) return;
@@ -58,4 +63,13 @@ void Window::onFramebufferResize(GLFWwindow* win, int w, int h) {
     if (self->m_resizeCb)
         self->m_resizeCb(self->m_fbWidth, self->m_fbHeight,
                          self->m_width, self->m_height);
+}
+
+void Window::onMouseButton(GLFWwindow* win, int button, int action, int mods) {
+    Window* self = static_cast<Window*>(glfwGetWindowUserPointer(win));
+    if (!self || !self->m_mouseButtonCb) return;
+    double x = 0.0;
+    double y = 0.0;
+    glfwGetCursorPos(win, &x, &y);
+    self->m_mouseButtonCb(button, action, mods, x, y);
 }

@@ -5,6 +5,8 @@
 Vulkan-based experimental UI framework. Phase 1 implemented the Vulkan
 foundation and rectangle/click vertical slice. Phase 2 adds runtime texture
 loading and text rendered through independent image and glyph texture arrays.
+The animation design adds position animation presets, repeat counts, modified-
+batch detection, and mouse event dispatch.
 
 **Backend: Vulkan** (MoltenVK on macOS). OpenGL/GLEW are not part of the
 active build.
@@ -21,8 +23,8 @@ active build.
 - Pointer hit-testing using actual window/framebuffer dimensions, with
   resize handling and GLFW top-left-origin cursor coordinates.
 - Deterministic overlap rule: latest-added / topmost first.
-- Batching: rectangles grouped by texture layer, one indexed batch draw per
-  compatible group.
+- Batching: contiguous rectangles with the same texture layer share an indexed
+  draw while preserving painter's order.
 - Callback semantics: fires once per click inside a rectangle; not for
   outside clicks, cursor motion, or unrelated rectangles.
 - Clean shutdown on window close.
@@ -60,6 +62,19 @@ active build.
 - **Text layout:** label `x` and `baselineY` use top-left-origin logical window
   pixels. Scale `1.0` corresponds to the 48-pixel glyph rasterization size.
 
+### Animation and input
+- Rectangles support linear position animation and cubic Bezier paths with two
+  control points.
+- Each animation accepts a total play count; `0` means repeat indefinitely.
+- The renderer advances animations once per frame and compares the current
+  rectangle batch inputs with the previous snapshot. When geometry or related
+  batch data changes, it rebuilds the mapped vertex/index arrays before drawing.
+- GLFW mouse-button events are captured by `Window` and dispatched to the
+  topmost enabled rectangle under the cursor. A left-button press invokes its
+  `onClick` response once; other buttons/actions and outside clicks are ignored.
+- The demo animates the red rectangle with the linear preset and the green
+  rectangle with a repeating cubic Bezier path.
+
 ## Repository layout
 
 ```
@@ -76,14 +91,17 @@ Assets/
   gradient.ppm         # test texture asset (64x64 RGB PPM P6)
 Texture.hpp / Texture.cpp      # PPM loader + TextureManager (Vulkan array resources)
 Text.hpp / Text.cpp            # FreeType glyph rasterizer + TextLabel API
+Animation.hpp / Animation.cpp  # linear and cubic Bezier position animation
 Window.hpp / Window.cpp        # GLFW window (Vulkan, no OpenGL)
 Rectangle.hpp / Rectangle.cpp  # rectangle widget + UVs + textureLayer + click
 VulkanRenderer.hpp / VulkanRenderer.cpp  # Vulkan device/swapchain/pipeline/descriptors/batching
 API_Portal.hpp                 # public API entry point
-main.cpp                       # demo: solid + textured rectangles + click callbacks
+main.cpp                       # demo: textures, text, animation, and click callbacks
 CMakeLists.txt                 # Vulkan + GLFW build
 README.md                      # this file
 tests/TextAtlasTest.cpp        # CPU-side glyph atlas smoke test
+tests/AnimationTest.cpp        # preset and repeat-count tests
+tests/MouseDispatchTest.cpp    # topmost click dispatch test
 ```
 
 Legacy OpenGL sources under `Dependencies/` and `OptionalLibs/` remain on disk
@@ -132,7 +150,8 @@ automatically (needed for MoltenVK on macOS) and launches `build/x19`.
 You should see a window with solid-color and textured rectangles. Clicking
 inside a rectangle prints its callback to the console; clicking outside prints
 nothing. The gradient rectangle overlaps the checkerboard and is topmost, so
-clicks in the overlap hit the gradient rectangle.
+clicks in the overlap hit the gradient rectangle. The red and green rectangles
+also animate using the linear and Bezier presets.
 
 ## Migration status
 
@@ -143,13 +162,17 @@ clicks in the overlap hit the gradient rectangle.
 | Rectangle click callbacks | ✅ Implemented |
 | Hit-testing after resize / hi-DPI | ✅ Implemented |
 | Topmost-first click overlap | ✅ Implemented |
-| Batched indexed draws (per texture group) | ✅ Implemented |
+| Batched indexed draws (contiguous texture-layer runs) | ✅ Implemented |
 | Clean Vulkan/GLFW shutdown | ✅ Implemented |
 | Texture loading (PPM P6) | ✅ Implemented (Phase 2) |
 | Vulkan 2D-array texture upload | ✅ Implemented (Phase 2) |
 | Texture sampling in fragment shader | ✅ Implemented (Phase 2) |
 | Multiple texture layers | ✅ Implemented (Phase 2) |
 | Text rendering (FreeType; printable ASCII) | ✅ Implemented (separate glyph array and batch) |
+| Linear / cubic Bezier rectangle animation | ✅ Implemented |
+| Per-animation repeat count (`0` = infinite) | ✅ Implemented |
+| Batch-input modification detection and rebuild | ✅ Implemented |
+| GLFW mouse capture and rectangle click dispatch | ✅ Implemented |
 | Borders / advanced styling | ⏳ Deferred |
 | PNG/JPEG decoding | ⏳ Deferred (PPM P6 only) |
 | Multi-window / layout system / multithreading | ⏳ Deferred |
@@ -182,12 +205,11 @@ after the rectangle draw groups.
 
 ## Draw-call behavior
 
-Rectangles are grouped by `textureLayer`. Solid rectangles (`layer = -1`)
-form one group; each textured layer forms its own group. Each group issues
-one indexed draw call. Observed draw calls = number of distinct texture
-layers present + 1 (solid group). If texture grouping would reorder
-overlapping transparent widgets, insertion order within each group preserves
-the painter's order.
+Rectangles are combined into contiguous draw groups with the same texture
+layer. Grouping only adjacent rectangles preserves painter's order and
+transparency. The draw-call count is the number of contiguous texture-layer
+runs in the visible rectangle list; modifying rectangle batch data triggers a
+batch rebuild before the next draw.
 
 ## Known limitations
 
@@ -203,6 +225,8 @@ the painter's order.
   or SemiBold font face; it supports printable ASCII, newline, and tab only.
 - Textures are non-owning in the renderer; the TextureManager owns Vulkan
   resources and destroys them in valid order.
+- Bezier animations use explicit control points; repeat count `0` is infinite.
+  Finite repeats restart from the animation's starting position.
 
 ## Verification performed
 
@@ -215,3 +239,5 @@ the painter's order.
 - Text atlas smoke test passes; the Vulkan demo initializes and loads the
   Regular font glyph array. On-screen glyph orientation was corrected in the
   vertex shader; visual inspection is still recommended.
+- Animation preset/repeat and mouse-dispatch tests pass. The interactive demo
+  starts with the animation and input paths enabled.

@@ -6,6 +6,8 @@
 
 #include <vector>
 #include <string>
+#include <array>
+#include <chrono>
 
 class Rectangle;
 class TextureManager;
@@ -69,6 +71,11 @@ public:
     int addText(TextLabel* text);
     void removeText(TextLabel* text);
 
+    // Dispatch a GLFW mouse event to the topmost enabled rectangle under the
+    // cursor. Only a left-button press invokes onClick.
+    void dispatchMouseButton(int button, int action, int mods,
+                             double cursorX, double cursorY);
+
     // Draw one frame: rebuild batches, record, submit, present.
     // Returns false on unrecoverable error.
     bool drawFrame();
@@ -115,6 +122,8 @@ private:
     // ---- frame ----
     void buildBatches();          // group rectangles by texture layer
     void buildTextBatch();
+    bool detectBatchArrayModification();
+    void updateAnimations(float deltaSeconds);
     void drawBatches(uint32_t imageIndex);
 
     // ---- helpers ----
@@ -196,6 +205,17 @@ private:
     std::vector<DrawGroup> m_drawGroups;
     size_t m_totalVertexCount = 0;
     size_t m_totalIndexCount = 0;
+
+    struct RectangleBatchSnapshot {
+        const Rectangle* rectangle = nullptr;
+        std::array<float, 16> geometry{}; // x/y/size, color, UVs
+        int textureLayer = -1;
+        bool visible = true;
+        bool operator==(const RectangleBatchSnapshot&) const = default;
+    };
+    std::vector<RectangleBatchSnapshot> m_cachedBatchSnapshot;
+    bool m_batchesDirty = true;
+    std::chrono::steady_clock::time_point m_lastFrameTime{};
 
     // state
     int m_fbWidth = 0, m_fbHeight = 0;

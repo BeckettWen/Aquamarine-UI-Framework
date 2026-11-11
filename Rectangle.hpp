@@ -1,7 +1,10 @@
 #pragma once
 
+#include "Animation.hpp"
+
 #include <array>
 #include <functional>
+#include <optional>
 
 // A rectangle widget with optional texturing and a click callback.
 //
@@ -53,6 +56,19 @@ public:
     // Returns true if (cx, cy) — screen/logical coords — is inside this rect.
     bool contains(double cx, double cy) const;
 
+    // Animate the rectangle's top-left position. repeatCount is the total
+    // number of plays; 0 repeats forever. A Bezier animation follows the
+    // cubic path defined by its two control points.
+    bool animateTo(float targetX, float targetY, float durationSeconds,
+                   uint32_t repeatCount = 1);
+    bool animateBezierTo(float targetX, float targetY,
+                         float control1X, float control1Y,
+                         float control2X, float control2Y,
+                         float durationSeconds, uint32_t repeatCount = 1);
+    void setAnimationRepeatCount(uint32_t repeatCount);
+    void cancelAnimation();
+    bool advanceAnimation(float deltaSeconds);
+
     // Write this rectangle's 4 vertices into vbuf.
     // Layout per vertex: pos(2) + color(4) + uv(2) + layer(1) = 9 floats.
     // vbuf must have room for 4 * 9 floats.
@@ -61,4 +77,7 @@ public:
     // Write this rectangle's 6 indices (2 triangles) into ibuf, offset by
     // baseVertex. ibuf must have room for 6 unsigned ints.
     void writeIndices(unsigned int* ibuf, unsigned int baseVertex) const;
+
+private:
+    std::optional<Animation> m_positionAnimation;
 };

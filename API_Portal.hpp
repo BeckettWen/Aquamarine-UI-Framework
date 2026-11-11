@@ -6,7 +6,8 @@
 //   - Window        : GLFW window (Vulkan, no OpenGL context) + size/cursor
 //   - VulkanRenderer: Vulkan device/swapchain/pipeline + batched rectangle
 //                     and dedicated text rendering + click dispatch
-//   - Rectangle     : widget with top-left origin, color, and onClick callback
+//   - Rectangle     : widget with top-left origin, color, click response, and
+//                     linear/cubic-Bezier position animation
 //   - TextLabel      : baseline-positioned label rendered from the dedicated
 //                     FreeType glyph texture array and text geometry batch
 //

@@ -125,6 +125,8 @@ bool VulkanRenderer::init(GLFWwindow* window, int fbWidth, int fbHeight,
         return false;
     }
 
+    m_lastFrameTime = std::chrono::steady_clock::now();
+    m_batchesDirty = true;
     m_valid = true;
     std::cout << "Renderer: Vulkan initialized ("
               << m_fbWidth << "x" << m_fbHeight << " framebuffer)\n";
@@ -1390,63 +1392,68 @@ void VulkanRenderer::buildBatches() {
     m_totalVertexCount = 0;
     m_totalIndexCount = 0;
 
-    if (m_rectangles.empty()) return;
+    if (!m_vertexMapped || !m_indexMapped) return;
 
-    // Group rectangles by textureLayer, preserving insertion order within
-    // each group. Solid (-1) group is drawn first, then each texture layer
-    // group in ascending layer order. Within a group, insertion order is
-    // preserved (topmost last).
-    struct GroupEntry {
-        int layer;
-        size_t startVertex;
-        size_t startIndex;
-    };
-    std::vector<GroupEntry> groups;  // (layer, vertexBase, indexBase)
-
-    float* v = m_vertexMapped;
-    uint32_t* ib = m_indexMapped;
-    unsigned int baseVertex = 0;
-
-    // Sort rectangles into groups without reordering within a layer.
-    // We iterate once, appending to the matching group.
-    std::vector<int> layers;
-    std::vector<size_t> groupVertStart;
-    std::vector<size_t> groupIndexStart;
-    std::vector<size_t> groupIndexCount;
-
-    for (auto* r : m_rectangles) {
-        if (!r->visible) continue;
-        // Find or create group for this layer.
-        size_t g = 0;
-        bool found = false;
-        for (; g < groups.size(); ++g) {
-            if (groups[g].layer == r->textureLayer) { found = true; break; }
-        }
-        if (!found) {
-            groups.push_back(GroupEntry{r->textureLayer, m_totalVertexCount,
-                                        m_totalIndexCount});
-            groupIndexCount.push_back(0);
+    // Keep painter's order: merge only adjacent rectangles using the same
+    // texture layer. Each draw group's vertices and indices are contiguous.
+    DrawGroup* currentGroup = nullptr;
+    uint32_t baseVertex = 0;
+    size_t rectangleCount = 0;
+    for (Rectangle* rectangle : m_rectangles) {
+        if (!rectangle || !rectangle->visible) continue;
+        if (rectangleCount >= MAX_RECTANGLES) {
+            std::cerr << "Renderer: rectangle batch limit of " << MAX_RECTANGLES
+                      << " reached; remaining rectangles are not drawn\n";
+            break;
         }
 
-        r->writeVertices(v);
-        v += 36;  // 4 verts * 9 floats
-        r->writeIndices(ib, baseVertex);
-        ib += 6;
-        baseVertex += 4;
+        if (!currentGroup || currentGroup->textureLayer != rectangle->textureLayer) {
+            m_drawGroups.push_back(DrawGroup{
+                rectangle->textureLayer, m_totalVertexCount, m_totalIndexCount, 0});
+            currentGroup = &m_drawGroups.back();
+        }
+
+        float* vertices = m_vertexMapped + m_totalVertexCount * 9;
+        uint32_t* indices = m_indexMapped + m_totalIndexCount;
+        rectangle->writeVertices(vertices);
+        rectangle->writeIndices(indices, baseVertex);
 
         m_totalVertexCount += 4;
         m_totalIndexCount += 6;
-        groupIndexCount[g] += 6;
+        currentGroup->indexCount += 6;
+        baseVertex += 4;
+        ++rectangleCount;
     }
+}
 
-    // Build draw groups.
-    for (size_t g = 0; g < groups.size(); ++g) {
-        DrawGroup dg;
-        dg.textureLayer = groups[g].layer;
-        dg.vertexOffset = groups[g].startVertex;
-        dg.indexOffset = groups[g].startIndex;
-        dg.indexCount = groupIndexCount[g];
-        m_drawGroups.push_back(dg);
+bool VulkanRenderer::detectBatchArrayModification() {
+    std::vector<RectangleBatchSnapshot> current;
+    current.reserve(m_rectangles.size());
+    for (const Rectangle* rectangle : m_rectangles) {
+        if (!rectangle) continue;
+        RectangleBatchSnapshot snapshot;
+        snapshot.rectangle = rectangle;
+        snapshot.geometry = {
+            rectangle->x, rectangle->y, rectangle->width, rectangle->height,
+            rectangle->color[0], rectangle->color[1], rectangle->color[2], rectangle->color[3],
+            rectangle->uv[0], rectangle->uv[1], rectangle->uv[2], rectangle->uv[3],
+            rectangle->uv[4], rectangle->uv[5], rectangle->uv[6], rectangle->uv[7],
+        };
+        snapshot.textureLayer = rectangle->textureLayer;
+        snapshot.visible = rectangle->visible;
+        current.push_back(snapshot);
+    }
+    if (current != m_cachedBatchSnapshot) {
+        m_cachedBatchSnapshot = std::move(current);
+        m_batchesDirty = true;
+    }
+    return m_batchesDirty;
+}
+
+void VulkanRenderer::updateAnimations(float deltaSeconds) {
+    for (Rectangle* rectangle : m_rectangles) {
+        if (rectangle && rectangle->advanceAnimation(deltaSeconds))
+            m_batchesDirty = true;
     }
 }
 
@@ -1604,7 +1611,7 @@ void VulkanRenderer::drawBatches(uint32_t imageIndex) {
 
             vkCmdDrawIndexed(cmd, static_cast<uint32_t>(group.indexCount), 1,
                              static_cast<uint32_t>(group.indexOffset),
-                             static_cast<int32_t>(group.vertexOffset), 0);
+                             0, 0);
         }
     }
 
@@ -1652,8 +1659,6 @@ bool VulkanRenderer::drawFrame() {
     VkResult res = vkWaitForFences(m_device, 1, &m_inFlightFence, VK_TRUE,
                                    UINT64_MAX);
     if (!checkValidationResult(res, "vkWaitForFences")) return false;
-    res = vkResetFences(m_device, 1, &m_inFlightFence);
-    if (!checkValidationResult(res, "vkResetFences")) return false;
 
     uint32_t imageIndex = 0;
     res = vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX,
@@ -1667,8 +1672,24 @@ bool VulkanRenderer::drawFrame() {
         return checkValidationResult(res, "vkAcquireNextImageKHR");
     }
 
-    // Rebuild CPU batch and record commands.
-    buildBatches();
+    // Reset only once an image was acquired and a submission is imminent. If
+    // acquisition reports OUT_OF_DATE, the still-signaled fence remains safe
+    // to wait on during swapchain recreation.
+    res = vkResetFences(m_device, 1, &m_inFlightFence);
+    if (!checkValidationResult(res, "vkResetFences")) return false;
+
+    // Update animated positions, detect any public geometry changes, and only
+    // rebuild the mapped rectangle batch when its source array changed.
+    const auto frameTime = std::chrono::steady_clock::now();
+    float deltaSeconds = std::chrono::duration<float>(
+        frameTime - m_lastFrameTime).count();
+    m_lastFrameTime = frameTime;
+    deltaSeconds = std::clamp(deltaSeconds, 0.0f, 0.1f);
+    updateAnimations(deltaSeconds);
+    if (detectBatchArrayModification()) {
+        buildBatches();
+        m_batchesDirty = false;
+    }
     buildTextBatch();
     drawBatches(imageIndex);
 
@@ -1711,6 +1732,7 @@ bool VulkanRenderer::drawFrame() {
 int VulkanRenderer::addRectangle(Rectangle* rect) {
     if (!rect) return -1;
     m_rectangles.push_back(rect);
+    m_batchesDirty = true;
     return static_cast<int>(m_rectangles.size()) - 1;
 }
 
@@ -1718,6 +1740,7 @@ void VulkanRenderer::removeRectangle(Rectangle* rect) {
     m_rectangles.erase(
         std::remove(m_rectangles.begin(), m_rectangles.end(), rect),
         m_rectangles.end());
+    m_batchesDirty = true;
 }
 
 int VulkanRenderer::addText(TextLabel* text) {
@@ -1730,4 +1753,20 @@ void VulkanRenderer::removeText(TextLabel* text) {
     m_textLabels.erase(
         std::remove(m_textLabels.begin(), m_textLabels.end(), text),
         m_textLabels.end());
+}
+
+void VulkanRenderer::dispatchMouseButton(int button, int action, int mods,
+                                         double cursorX, double cursorY) {
+    (void)mods;
+    if (button != GLFW_MOUSE_BUTTON_LEFT || action != GLFW_PRESS) return;
+
+    std::function<void()> response;
+    for (auto it = m_rectangles.rbegin(); it != m_rectangles.rend(); ++it) {
+        Rectangle* rectangle = *it;
+        if (rectangle && rectangle->contains(cursorX, cursorY)) {
+            response = rectangle->onClick;
+            break;
+        }
+    }
+    if (response) response();
 }

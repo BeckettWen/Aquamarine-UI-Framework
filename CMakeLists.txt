@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(X19 VERSION 0.2 LANGUAGES CXX)
 
-# X-19 Lyra (Cloudsdale) — Vulkan-based UI framework with Phase 2 texture engine.
+# Lyra (Cloudsdale) — Vulkan-based UI framework with texturing and animation.
 # Active renderer: Vulkan only (no OpenGL / GLEW in the active build).
 
 set(CMAKE_CONFIGURE_DEPENDS "CMakeLists.txt")
@@ -19,7 +19,7 @@ find_package(Vulkan REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(Freetype REQUIRED)
 
-# Prefer the installed Helvetica Neue collection, selecting its Regular face.
+# Prefer the installed SF Pro font, selecting its Regular face.
 # Override this cache variable with a regular/semibold TTF, OTF, or TTC path on
 # another machine. The font is referenced in place and is not copied/bundled.
 set(LYRA_FONT_FILE "/System/Library/Fonts/SFNS.ttf" CACHE FILEPATH
@@ -37,6 +37,8 @@ add_executable(x19
     API_Portal.hpp
     Window.hpp
     Window.cpp
+    Animation.hpp
+    Animation.cpp
     Rectangle.hpp
     Rectangle.cpp
     Text.hpp
@@ -91,4 +93,24 @@ if(BUILD_TESTING)
         TEST_FONT_PATH="${LYRA_FONT_FILE}"
     )
     add_test(NAME text_atlas_smoke COMMAND text_atlas_test)
+
+    add_executable(mouse_dispatch_test
+        Animation.cpp
+        VulkanRenderer.cpp
+        Texture.cpp
+        Text.cpp
+        Rectangle.cpp
+        tests/MouseDispatchTest.cpp
+    )
+    target_include_directories(mouse_dispatch_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(mouse_dispatch_test PRIVATE
+        Vulkan::Vulkan glfw Freetype::Freetype)
+    add_test(NAME mouse_dispatch COMMAND mouse_dispatch_test)
+
+    add_executable(animation_test
+        Animation.cpp
+        tests/AnimationTest.cpp
+    )
+    target_include_directories(animation_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    add_test(NAME animation_presets COMMAND animation_test)
 endif()

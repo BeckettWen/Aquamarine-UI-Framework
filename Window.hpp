@@ -41,12 +41,20 @@ public:
                                               int winWidth, int winHeight)>;
     void setResizeCallback(ResizeCallback cb);
 
+    // Mouse positions are delivered in logical window pixels with a top-left
+    // origin, matching cursorPos() and Rectangle::contains().
+    using MouseButtonCallback =
+        std::function<void(int button, int action, int mods, double x, double y)>;
+    void setMouseButtonCallback(MouseButtonCallback cb);
+
 private:
     static void onFramebufferResize(GLFWwindow* win, int w, int h);
+    static void onMouseButton(GLFWwindow* win, int button, int action, int mods);
 
     GLFWwindow* m_window = nullptr;
     int m_width = 0, m_height = 0;
     int m_fbWidth = 0, m_fbHeight = 0;
     bool m_resized = false;
     ResizeCallback m_resizeCb;
+    MouseButtonCallback m_mouseButtonCb;
 };
