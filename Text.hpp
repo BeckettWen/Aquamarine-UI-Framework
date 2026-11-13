@@ -55,4 +55,9 @@ struct TextLabel {
     float scale = 1.0f;
     std::array<float, 4> color = {1.0f, 1.0f, 1.0f, 1.0f};
     bool visible = true;
+
+    // Blur the previously rendered backdrop in the label's measured text box;
+    // glyphs are drawn afterward and remain crisp.
+    bool backdropBlurEnabled = false;
+    float backdropBlurRadius = 8.0f; // Gaussian sigma in logical window pixels
 };

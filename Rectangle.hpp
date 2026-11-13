@@ -49,6 +49,11 @@ public:
     bool enabled = true;
     bool visible = true;
 
+    // When enabled, blur the already-rendered backdrop inside this rectangle's
+    // bounds before drawing the rectangle itself. The rectangle remains sharp.
+    bool backdropBlurEnabled = false;
+    float backdropBlurRadius = 10.0f; // Gaussian sigma in logical window pixels
+
     Rectangle() = default;
     Rectangle(float x, float y, float w, float h,
               std::array<float, 4> color);

@@ -99,6 +99,12 @@ bool VulkanRenderer::init(GLFWwindow* window, int fbWidth, int fbHeight,
         std::cerr << "Renderer: createImageViews failed\n";
         return false;
     }
+#if defined(LYRA_ENABLE_OFFSCREEN_RENDERING)
+    if (!createOffscreenImages()) {
+        std::cerr << "Renderer: createOffscreenImages failed\n";
+        return false;
+    }
+#endif
     if (!createCommandPool()) {
         std::cerr << "Renderer: createCommandPool failed\n";
         return false;
@@ -117,6 +123,12 @@ bool VulkanRenderer::init(GLFWwindow* window, int fbWidth, int fbHeight,
         std::cerr << "Renderer: createDescriptorResources failed\n";
         return false;
     }
+#if defined(LYRA_ENABLE_OFFSCREEN_RENDERING)
+    if (!createBackdropBlurResources()) {
+        std::cerr << "Renderer: createBackdropBlurResources failed\n";
+        return false;
+    }
+#endif
     if (!createGraphicsPipeline(m_shaderDir)) {
         std::cerr << "Renderer: createGraphicsPipeline failed\n";
         return false;
@@ -149,6 +161,9 @@ void VulkanRenderer::destroy() {
 void VulkanRenderer::cleanup() {
     if (m_device != VK_NULL_HANDLE) vkDeviceWaitIdle(m_device);
 
+#if defined(LYRA_ENABLE_OFFSCREEN_RENDERING)
+    destroyBackdropBlurResources();
+#endif
     cleanupSwapchain();
 
     destroyTextResources();
@@ -225,6 +240,27 @@ void VulkanRenderer::cleanup() {
 }
 
 void VulkanRenderer::cleanupSwapchain() {
+#if defined(LYRA_ENABLE_OFFSCREEN_RENDERING)
+    auto destroyOffscreenImage = [this](VkImage& image, VkImageView& view,
+                                        VkDeviceMemory& memory) {
+        if (view != VK_NULL_HANDLE) vkDestroyImageView(m_device, view, nullptr);
+        view = VK_NULL_HANDLE;
+        if (image != VK_NULL_HANDLE) vkDestroyImage(m_device, image, nullptr);
+        image = VK_NULL_HANDLE;
+        if (memory != VK_NULL_HANDLE) vkFreeMemory(m_device, memory, nullptr);
+        memory = VK_NULL_HANDLE;
+    };
+    destroyOffscreenImage(m_sceneImage, m_sceneImageView, m_sceneImageMemory);
+#if defined(LYRA_ENABLE_BACKDROP_BLUR)
+    destroyOffscreenImage(m_blurScratchImage, m_blurScratchView,
+                          m_blurScratchMemory);
+    destroyOffscreenImage(m_blurredImage, m_blurredImageView,
+                          m_blurredImageMemory);
+#endif
+    m_sceneImageInitialized = false;
+    m_blurImagesInitialized = false;
+    m_swapchainImageInitialized.clear();
+#endif
     for (auto iv : m_swapchainImageViews)
         if (iv != VK_NULL_HANDLE) vkDestroyImageView(m_device, iv, nullptr);
     m_swapchainImageViews.clear();
@@ -391,9 +427,27 @@ bool VulkanRenderer::createSwapchain() {
     }
 
     VkCompositeAlphaFlagBitsKHR compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    if (!(caps.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)) {
-        compositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
+#if defined(LYRA_ENABLE_MACOS_WINDOW_BLUR)
+    if (caps.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR) {
+        compositeAlpha = VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR;
+        m_swapchainUsesPremultipliedAlpha = true;
+        std::cout << "Renderer: transparent surface composition is available "
+                     "(pre-multiplied alpha)\n";
+    } else if (caps.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR) {
+        compositeAlpha = VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR;
+        m_swapchainUsesPremultipliedAlpha = false;
+        std::cout << "Renderer: transparent surface composition is available "
+                     "(post-multiplied alpha)\n";
+    } else {
+        std::cerr << "Renderer: surface does not support transparent composition; "
+                     "macOS window backdrop is unavailable\n";
+        if (!(caps.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR))
+            compositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
     }
+#else
+    if (!(caps.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR))
+        compositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
+#endif
 
     VkSwapchainCreateInfoKHR ci{};
     ci.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -725,6 +779,294 @@ static uint32_t memoryTypeIndex(VkPhysicalDevice pd, uint32_t typeBits,
     }
     return std::numeric_limits<uint32_t>::max();
 }
+
+#if defined(LYRA_ENABLE_OFFSCREEN_RENDERING)
+bool VulkanRenderer::createOffscreenImages() {
+    VkFormatProperties formatProperties{};
+    vkGetPhysicalDeviceFormatProperties(m_physicalDevice, m_swapchainFormat,
+                                        &formatProperties);
+    const VkFormatFeatureFlags needed = VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT |
+                                       VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT |
+                                       VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT;
+    if ((formatProperties.optimalTilingFeatures & needed) != needed) {
+        std::cerr << "Renderer: swapchain format cannot be used for sampled "
+                     "offscreen rendering\n";
+        return false;
+    }
+
+    auto createImage = [this](VkImage& image, VkDeviceMemory& memory,
+                              VkImageView& view) -> bool {
+        VkImageCreateInfo imageInfo{};
+        imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageInfo.imageType = VK_IMAGE_TYPE_2D;
+        imageInfo.format = m_swapchainFormat;
+        imageInfo.extent = {m_swapchainExtent.width, m_swapchainExtent.height, 1};
+        imageInfo.mipLevels = 1;
+        imageInfo.arrayLayers = 1;
+        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+        imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+        imageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                          VK_IMAGE_USAGE_SAMPLED_BIT;
+        imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        if (vkCreateImage(m_device, &imageInfo, nullptr, &image) != VK_SUCCESS)
+            return false;
+
+        VkMemoryRequirements requirements{};
+        vkGetImageMemoryRequirements(m_device, image, &requirements);
+        const uint32_t memoryType = memoryTypeIndex(
+            m_physicalDevice, requirements.memoryTypeBits,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        if (memoryType == std::numeric_limits<uint32_t>::max()) return false;
+
+        VkMemoryAllocateInfo allocation{};
+        allocation.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocation.allocationSize = requirements.size;
+        allocation.memoryTypeIndex = memoryType;
+        if (vkAllocateMemory(m_device, &allocation, nullptr, &memory) != VK_SUCCESS ||
+            vkBindImageMemory(m_device, image, memory, 0) != VK_SUCCESS)
+            return false;
+
+        VkImageViewCreateInfo viewInfo{};
+        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewInfo.image = image;
+        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        viewInfo.format = m_swapchainFormat;
+        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        viewInfo.subresourceRange.levelCount = 1;
+        viewInfo.subresourceRange.layerCount = 1;
+        return vkCreateImageView(m_device, &viewInfo, nullptr, &view) == VK_SUCCESS;
+    };
+
+    if (!createImage(m_sceneImage, m_sceneImageMemory, m_sceneImageView))
+        return false;
+#if defined(LYRA_ENABLE_BACKDROP_BLUR)
+    if (!createImage(m_blurScratchImage, m_blurScratchMemory, m_blurScratchView) ||
+        !createImage(m_blurredImage, m_blurredImageMemory, m_blurredImageView))
+        return false;
+#endif
+    m_sceneImageInitialized = false;
+    m_blurImagesInitialized = false;
+    m_swapchainImageInitialized.assign(m_swapchainImages.size(), false);
+    return updateBackdropDescriptorSets();
+}
+
+bool VulkanRenderer::createBackdropBlurResources() {
+    VkSamplerCreateInfo samplerInfo{};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = VK_FILTER_LINEAR;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.maxLod = 0.0f;
+    if (vkCreateSampler(m_device, &samplerInfo, nullptr,
+                        &m_backdropSampler) != VK_SUCCESS)
+        return false;
+
+    VkDescriptorSetLayoutBinding binding{};
+    binding.binding = 0;
+    binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    binding.descriptorCount = 1;
+    binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    VkDescriptorSetLayoutCreateInfo layoutInfo{};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = 1;
+    layoutInfo.pBindings = &binding;
+    if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr,
+                                    &m_backdropDescriptorSetLayout) != VK_SUCCESS)
+        return false;
+
+    VkDescriptorPoolSize poolSize{};
+    poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSize.descriptorCount = 3;
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.maxSets = 3;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
+    if (vkCreateDescriptorPool(m_device, &poolInfo, nullptr,
+                               &m_backdropDescriptorPool) != VK_SUCCESS)
+        return false;
+
+    const VkDescriptorSetLayout layouts[3] = {
+        m_backdropDescriptorSetLayout,
+        m_backdropDescriptorSetLayout,
+        m_backdropDescriptorSetLayout,
+    };
+    VkDescriptorSet sets[3]{};
+    VkDescriptorSetAllocateInfo allocation{};
+    allocation.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocation.descriptorPool = m_backdropDescriptorPool;
+    allocation.descriptorSetCount = 3;
+    allocation.pSetLayouts = layouts;
+    if (vkAllocateDescriptorSets(m_device, &allocation, sets) != VK_SUCCESS)
+        return false;
+    m_sceneDescriptorSet = sets[0];
+    m_scratchDescriptorSet = sets[1];
+    m_blurredDescriptorSet = sets[2];
+
+    if (!updateBackdropDescriptorSets()) return false;
+    return createBackdropBlurPipeline();
+}
+
+bool VulkanRenderer::updateBackdropDescriptorSets() {
+    if (m_device == VK_NULL_HANDLE ||
+        m_backdropDescriptorPool == VK_NULL_HANDLE ||
+        m_sceneImageView == VK_NULL_HANDLE)
+        return true;
+
+    VkDescriptorImageInfo imageInfos[3]{};
+    imageInfos[0] = {m_backdropSampler, m_sceneImageView,
+                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+#if defined(LYRA_ENABLE_BACKDROP_BLUR)
+    imageInfos[1] = {m_backdropSampler, m_blurScratchView,
+                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+    imageInfos[2] = {m_backdropSampler, m_blurredImageView,
+                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+#else
+    imageInfos[1] = imageInfos[0];
+    imageInfos[2] = imageInfos[0];
+#endif
+
+    const VkDescriptorSet sets[3] = {
+        m_sceneDescriptorSet, m_scratchDescriptorSet, m_blurredDescriptorSet};
+    VkWriteDescriptorSet writes[3]{};
+    for (uint32_t i = 0; i < 3; ++i) {
+        writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writes[i].dstSet = sets[i];
+        writes[i].dstBinding = 0;
+        writes[i].descriptorCount = 1;
+        writes[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        writes[i].pImageInfo = &imageInfos[i];
+    }
+    vkUpdateDescriptorSets(m_device, 3, writes, 0, nullptr);
+    return true;
+}
+
+bool VulkanRenderer::createBackdropBlurPipeline() {
+    const auto vertexCode = readFile(m_shaderDir + "/backdrop_blur.vert.spv");
+    const auto fragmentCode = readFile(m_shaderDir + "/backdrop_blur.frag.spv");
+    if (vertexCode.empty() || fragmentCode.empty()) {
+        std::cerr << "Renderer: missing backdrop blur shaders in "
+                  << m_shaderDir << '\n';
+        return false;
+    }
+    VkShaderModule vertexModule = createShaderModule(m_device, vertexCode);
+    VkShaderModule fragmentModule = createShaderModule(m_device, fragmentCode);
+    if (vertexModule == VK_NULL_HANDLE || fragmentModule == VK_NULL_HANDLE) {
+        if (vertexModule != VK_NULL_HANDLE)
+            vkDestroyShaderModule(m_device, vertexModule, nullptr);
+        if (fragmentModule != VK_NULL_HANDLE)
+            vkDestroyShaderModule(m_device, fragmentModule, nullptr);
+        return false;
+    }
+
+    VkPipelineShaderStageCreateInfo stages[2]{};
+    stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+    stages[0].module = vertexModule;
+    stages[0].pName = "main";
+    stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    stages[1].module = fragmentModule;
+    stages[1].pName = "main";
+
+    VkPipelineVertexInputStateCreateInfo vertexInput{};
+    vertexInput.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    VkPipelineInputAssemblyStateCreateInfo assembly{};
+    assembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    assembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    VkPipelineViewportStateCreateInfo viewport{};
+    viewport.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    viewport.viewportCount = 1;
+    viewport.scissorCount = 1;
+    VkPipelineRasterizationStateCreateInfo raster{};
+    raster.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    raster.polygonMode = VK_POLYGON_MODE_FILL;
+    raster.cullMode = VK_CULL_MODE_NONE;
+    raster.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    raster.lineWidth = 1.0f;
+    VkPipelineMultisampleStateCreateInfo multisample{};
+    multisample.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    multisample.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    VkPipelineColorBlendAttachmentState blend{};
+    blend.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    VkPipelineColorBlendStateCreateInfo colorBlend{};
+    colorBlend.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    colorBlend.attachmentCount = 1;
+    colorBlend.pAttachments = &blend;
+    VkDynamicState dynamicStates[] = {
+        VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+    VkPipelineDynamicStateCreateInfo dynamic{};
+    dynamic.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamic.dynamicStateCount = 2;
+    dynamic.pDynamicStates = dynamicStates;
+
+    VkPushConstantRange pushConstants{};
+    pushConstants.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    pushConstants.size = 4 * sizeof(float);
+    VkPipelineLayoutCreateInfo layoutInfo{};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    layoutInfo.setLayoutCount = 1;
+    layoutInfo.pSetLayouts = &m_backdropDescriptorSetLayout;
+    layoutInfo.pushConstantRangeCount = 1;
+    layoutInfo.pPushConstantRanges = &pushConstants;
+    if (vkCreatePipelineLayout(m_device, &layoutInfo, nullptr,
+                               &m_backdropPipelineLayout) != VK_SUCCESS) {
+        vkDestroyShaderModule(m_device, vertexModule, nullptr);
+        vkDestroyShaderModule(m_device, fragmentModule, nullptr);
+        return false;
+    }
+
+    VkPipelineRenderingCreateInfo rendering{};
+    rendering.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+    rendering.colorAttachmentCount = 1;
+    rendering.pColorAttachmentFormats = &m_swapchainFormat;
+    VkGraphicsPipelineCreateInfo pipelineInfo{};
+    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipelineInfo.pNext = &rendering;
+    pipelineInfo.stageCount = 2;
+    pipelineInfo.pStages = stages;
+    pipelineInfo.pVertexInputState = &vertexInput;
+    pipelineInfo.pInputAssemblyState = &assembly;
+    pipelineInfo.pViewportState = &viewport;
+    pipelineInfo.pRasterizationState = &raster;
+    pipelineInfo.pMultisampleState = &multisample;
+    pipelineInfo.pColorBlendState = &colorBlend;
+    pipelineInfo.pDynamicState = &dynamic;
+    pipelineInfo.layout = m_backdropPipelineLayout;
+    const VkResult result = vkCreateGraphicsPipelines(
+        m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_backdropPipeline);
+    vkDestroyShaderModule(m_device, vertexModule, nullptr);
+    vkDestroyShaderModule(m_device, fragmentModule, nullptr);
+    return checkValidationResult(result, "vkCreateGraphicsPipelines(backdrop)");
+}
+
+void VulkanRenderer::destroyBackdropBlurResources() {
+    if (m_device == VK_NULL_HANDLE) return;
+    if (m_backdropPipeline != VK_NULL_HANDLE)
+        vkDestroyPipeline(m_device, m_backdropPipeline, nullptr);
+    m_backdropPipeline = VK_NULL_HANDLE;
+    if (m_backdropPipelineLayout != VK_NULL_HANDLE)
+        vkDestroyPipelineLayout(m_device, m_backdropPipelineLayout, nullptr);
+    m_backdropPipelineLayout = VK_NULL_HANDLE;
+    if (m_backdropDescriptorPool != VK_NULL_HANDLE)
+        vkDestroyDescriptorPool(m_device, m_backdropDescriptorPool, nullptr);
+    m_backdropDescriptorPool = VK_NULL_HANDLE;
+    m_sceneDescriptorSet = VK_NULL_HANDLE;
+    m_scratchDescriptorSet = VK_NULL_HANDLE;
+    m_blurredDescriptorSet = VK_NULL_HANDLE;
+    if (m_backdropDescriptorSetLayout != VK_NULL_HANDLE)
+        vkDestroyDescriptorSetLayout(m_device, m_backdropDescriptorSetLayout, nullptr);
+    m_backdropDescriptorSetLayout = VK_NULL_HANDLE;
+    if (m_backdropSampler != VK_NULL_HANDLE)
+        vkDestroySampler(m_device, m_backdropSampler, nullptr);
+    m_backdropSampler = VK_NULL_HANDLE;
+}
+#endif
 
 bool VulkanRenderer::createBuffers() {
     m_vertexBufferSize = MAX_RECTANGLES * 4 * 9 * sizeof(float);
@@ -1378,6 +1720,9 @@ bool VulkanRenderer::recreateSwapchain() {
 
     if (!createSwapchain()) return false;
     if (!createImageViews()) return false;
+#if defined(LYRA_ENABLE_OFFSCREEN_RENDERING)
+    if (!createOffscreenImages() || !updateBackdropDescriptorSets()) return false;
+#endif
 
     m_swapchainOutdated = false;
     std::cout << "Renderer: swapchain recreated ("
@@ -1461,6 +1806,7 @@ void VulkanRenderer::updateAnimations(float deltaSeconds) {
 
 void VulkanRenderer::buildTextBatch() {
     m_textIndexCount = 0;
+    m_textDraws.clear();
     if (!m_textVertexMapped || !m_textIndexMapped || !m_fontAtlas.valid()) return;
 
     uint32_t glyphCount = 0;
@@ -1468,6 +1814,7 @@ void VulkanRenderer::buildTextBatch() {
     const float atlasWidth = static_cast<float>(m_fontAtlas.width());
     const float atlasHeight = static_cast<float>(m_fontAtlas.height());
 
+    TextDraw* activeTextDraw = nullptr;
     auto writeGlyphQuad = [&](float left, float top, float width, float height,
                               const FontGlyph& glyph, const TextLabel& label) {
         if (glyphCount >= MAX_TEXT_GLYPHS) {
@@ -1501,6 +1848,24 @@ void VulkanRenderer::buildTextBatch() {
         indices[3] = baseVertex;
         indices[4] = baseVertex + 2;
         indices[5] = baseVertex + 3;
+        if (activeTextDraw) {
+            if (activeTextDraw->indexCount == 0) {
+                activeTextDraw->x = left;
+                activeTextDraw->y = top;
+                activeTextDraw->width = width;
+                activeTextDraw->height = height;
+            } else {
+                const float right = std::max(activeTextDraw->x + activeTextDraw->width,
+                                             left + width);
+                const float bottom = std::max(activeTextDraw->y + activeTextDraw->height,
+                                              top + height);
+                activeTextDraw->x = std::min(activeTextDraw->x, left);
+                activeTextDraw->y = std::min(activeTextDraw->y, top);
+                activeTextDraw->width = right - activeTextDraw->x;
+                activeTextDraw->height = bottom - activeTextDraw->y;
+            }
+            activeTextDraw->indexCount += 6;
+        }
         ++glyphCount;
         return true;
     };
@@ -1508,6 +1873,12 @@ void VulkanRenderer::buildTextBatch() {
     for (const TextLabel* label : m_textLabels) {
         if (!label || !label->visible || label->text.empty() ||
             !std::isfinite(label->scale) || label->scale <= 0.0f) continue;
+
+        TextDraw textDraw;
+        textDraw.firstIndex = glyphCount * 6;
+        textDraw.backdropBlurEnabled = label->backdropBlurEnabled;
+        textDraw.backdropBlurRadius = label->backdropBlurRadius;
+        activeTextDraw = &textDraw;
 
         float cursorX = label->x;
         float baselineY = label->baselineY;
@@ -1537,115 +1908,421 @@ void VulkanRenderer::buildTextBatch() {
             }
             cursorX += glyph->advance * label->scale;
         }
+        activeTextDraw = nullptr;
+        if (textDraw.indexCount > 0) m_textDraws.push_back(textDraw);
         if (glyphCount >= MAX_TEXT_GLYPHS) break;
     }
     m_textIndexCount = glyphCount * 6;
 }
 
-void VulkanRenderer::drawBatches(uint32_t imageIndex) {
-    if (m_drawGroups.empty() && m_textIndexCount == 0) return;
+void VulkanRenderer::transitionImage(VkCommandBuffer commandBuffer, VkImage image,
+                                     VkImageLayout oldLayout,
+                                     VkImageLayout newLayout,
+                                     VkPipelineStageFlags sourceStage,
+                                     VkAccessFlags sourceAccess,
+                                     VkPipelineStageFlags destinationStage,
+                                     VkAccessFlags destinationAccess) {
+    VkImageMemoryBarrier barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.srcAccessMask = sourceAccess;
+    barrier.dstAccessMask = destinationAccess;
+    barrier.oldLayout = oldLayout;
+    barrier.newLayout = newLayout;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = image;
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.layerCount = 1;
+    vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0,
+                         0, nullptr, 0, nullptr, 1, &barrier);
+}
 
-    VkCommandBuffer cmd = m_commandBuffer;
-
-    VkCommandBufferBeginInfo bi{};
-    bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-    if (vkBeginCommandBuffer(cmd, &bi) != VK_SUCCESS) {
-        std::cerr << "Renderer: vkBeginCommandBuffer failed\n";
-        return;
-    }
-
-    // Dynamic rendering begin.
-    VkRenderingAttachmentInfo colorAttach{};
-    colorAttach.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-    colorAttach.imageView = m_swapchainImageViews[imageIndex];
-    colorAttach.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    colorAttach.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    colorAttach.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    colorAttach.clearValue.color = {{0.1f, 0.1f, 0.1f, 1.0f}};
+#if defined(LYRA_ENABLE_OFFSCREEN_RENDERING)
+void VulkanRenderer::beginSceneRendering(VkCommandBuffer commandBuffer,
+                                         VkAttachmentLoadOp loadOp) {
+    VkRenderingAttachmentInfo colorAttachment{};
+    colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    colorAttachment.imageView = m_sceneImageView;
+    colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    colorAttachment.loadOp = loadOp;
+    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+#if defined(LYRA_ENABLE_MACOS_WINDOW_BLUR)
+    colorAttachment.clearValue.color = {{0.0f, 0.0f, 0.0f, 0.0f}};
+#else
+    colorAttachment.clearValue.color = {{0.1f, 0.1f, 0.1f, 1.0f}};
+#endif
 
     VkRenderingInfo rendering{};
     rendering.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
     rendering.renderArea = {{0, 0}, m_swapchainExtent};
     rendering.layerCount = 1;
     rendering.colorAttachmentCount = 1;
-    rendering.pColorAttachments = &colorAttach;
-    vkCmdBeginRendering(cmd, &rendering);
+    rendering.pColorAttachments = &colorAttachment;
+    vkCmdBeginRendering(commandBuffer, &rendering);
 
     VkViewport viewport{};
-    viewport.x = 0.0f;
-    viewport.y = 0.0f;
     viewport.width = static_cast<float>(m_swapchainExtent.width);
     viewport.height = static_cast<float>(m_swapchainExtent.height);
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
     VkRect2D scissor{{0, 0}, m_swapchainExtent};
-    vkCmdSetViewport(cmd, 0, 1, &viewport);
-    vkCmdSetScissor(cmd, 0, 1, &scissor);
+    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+}
+#endif
 
-    if (!m_drawGroups.empty()) {
-        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+#if defined(LYRA_ENABLE_BACKDROP_BLUR)
+bool VulkanRenderer::blurSceneBackdrop(VkCommandBuffer commandBuffer,
+                                       float x, float y, float width,
+                                       float height, float radius) {
+    const float scaleX = m_winWidth > 0
+        ? static_cast<float>(m_swapchainExtent.width) / m_winWidth : 1.0f;
+    const float scaleY = m_winHeight > 0
+        ? static_cast<float>(m_swapchainExtent.height) / m_winHeight : 1.0f;
+    const int left = std::clamp(static_cast<int>(std::floor(x * scaleX)),
+                                0, static_cast<int>(m_swapchainExtent.width));
+    const int top = std::clamp(static_cast<int>(std::floor(y * scaleY)),
+                               0, static_cast<int>(m_swapchainExtent.height));
+    const int right = std::clamp(static_cast<int>(std::ceil((x + width) * scaleX)),
+                                 0, static_cast<int>(m_swapchainExtent.width));
+    const int bottom = std::clamp(static_cast<int>(std::ceil((y + height) * scaleY)),
+                                  0, static_cast<int>(m_swapchainExtent.height));
+    if (right <= left || bottom <= top || !std::isfinite(radius) || radius <= 0.0f)
+        return true;
 
+    // The active render pass is ended so the scene can be sampled. The blur is
+    // a separable 9-tap Gaussian (horizontal then vertical), then only the
+    // component's scissor/mask is replaced with its blurred backdrop.
+    vkCmdEndRendering(commandBuffer);
+    transitionImage(commandBuffer, m_sceneImage,
+                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                    VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                    VK_ACCESS_SHADER_READ_BIT);
+    m_sceneImageInitialized = true;
+
+    const float sigmaX = std::clamp(radius * scaleX, 0.5f, 64.0f);
+    const float sigmaY = std::clamp(radius * scaleY, 0.5f, 64.0f);
+    const int verticalPadding = static_cast<int>(std::ceil(sigmaY * 2.0f));
+    VkRect2D horizontalScissor{{left, std::max(0, top - verticalPadding)},
+        {static_cast<uint32_t>(right - left),
+         static_cast<uint32_t>(std::min(static_cast<int>(m_swapchainExtent.height),
+                                        bottom + verticalPadding) -
+                               std::max(0, top - verticalPadding))}};
+    VkRect2D verticalScissor{{left, top},
+        {static_cast<uint32_t>(right - left),
+         static_cast<uint32_t>(bottom - top)}};
+
+    auto beginBlurTarget = [&](VkImageView view, const VkRect2D& scissor) {
+        VkRenderingAttachmentInfo attachment{};
+        attachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+        attachment.imageView = view;
+        attachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        attachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        VkRenderingInfo rendering{};
+        rendering.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+        rendering.renderArea = {{0, 0}, m_swapchainExtent};
+        rendering.layerCount = 1;
+        rendering.colorAttachmentCount = 1;
+        rendering.pColorAttachments = &attachment;
+        vkCmdBeginRendering(commandBuffer, &rendering);
+        VkViewport viewport{};
+        viewport.width = static_cast<float>(m_swapchainExtent.width);
+        viewport.height = static_cast<float>(m_swapchainExtent.height);
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+    };
+    auto runBlurPass = [&](VkImage image, VkImageView view, bool wasInitialized,
+                           VkDescriptorSet source, float sigma, float horizontal,
+                           const VkRect2D& scissor) {
+        transitionImage(commandBuffer, image,
+                        wasInitialized ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+                                       : VK_IMAGE_LAYOUT_UNDEFINED,
+                        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                        wasInitialized ? VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT
+                                       : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                        wasInitialized ? VK_ACCESS_SHADER_READ_BIT : 0,
+                        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
+        beginBlurTarget(view, scissor);
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                          m_backdropPipeline);
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                m_backdropPipelineLayout, 0, 1, &source, 0, nullptr);
+        struct BlurPush { float texelX, texelY, sigma, horizontal; } push{
+            1.0f / static_cast<float>(m_swapchainExtent.width),
+            1.0f / static_cast<float>(m_swapchainExtent.height),
+            sigma,
+            horizontal,
+        };
+        vkCmdPushConstants(commandBuffer, m_backdropPipelineLayout,
+                           VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push);
+        vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+        vkCmdEndRendering(commandBuffer);
+        transitionImage(commandBuffer, image,
+                        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                        VK_ACCESS_SHADER_READ_BIT);
+    };
+
+    runBlurPass(m_blurScratchImage, m_blurScratchView,
+                m_blurImagesInitialized, m_sceneDescriptorSet, sigmaX, 1.0f,
+                horizontalScissor);
+    runBlurPass(m_blurredImage, m_blurredImageView,
+                m_blurImagesInitialized, m_scratchDescriptorSet, sigmaY, 0.0f,
+                verticalScissor);
+    m_blurImagesInitialized = true;
+
+    transitionImage(commandBuffer, m_sceneImage,
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                    VK_ACCESS_SHADER_READ_BIT,
+                    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                    VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+                        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
+    beginSceneRendering(commandBuffer, VK_ATTACHMENT_LOAD_OP_LOAD);
+
+    vkCmdSetScissor(commandBuffer, 0, 1, &verticalScissor);
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      m_backdropPipeline);
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            m_backdropPipelineLayout, 0, 1,
+                            &m_blurredDescriptorSet, 0, nullptr);
+    struct BlurPush { float texelX, texelY, sigma, horizontal; } samplePush{
+        1.0f / static_cast<float>(m_swapchainExtent.width),
+        1.0f / static_cast<float>(m_swapchainExtent.height),
+        0.0f, 0.0f,
+    };
+    vkCmdPushConstants(commandBuffer, m_backdropPipelineLayout,
+                       VK_SHADER_STAGE_FRAGMENT_BIT, 0,
+                       sizeof(samplePush), &samplePush);
+    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    VkRect2D fullScissor{{0, 0}, m_swapchainExtent};
+    vkCmdSetScissor(commandBuffer, 0, 1, &fullScissor);
+    return true;
+}
+#endif
+
+void VulkanRenderer::drawBatches(uint32_t imageIndex) {
+#if !defined(LYRA_ENABLE_OFFSCREEN_RENDERING)
+    if (m_drawGroups.empty() && m_textIndexCount == 0) return;
+#endif
+
+    VkCommandBuffer commandBuffer = m_commandBuffer;
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+        std::cerr << "Renderer: vkBeginCommandBuffer failed\n";
+        return;
+    }
+
+#if defined(LYRA_ENABLE_OFFSCREEN_RENDERING)
+    transitionImage(commandBuffer, m_sceneImage,
+                    m_sceneImageInitialized ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+                                            : VK_IMAGE_LAYOUT_UNDEFINED,
+                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                    m_sceneImageInitialized ? VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT
+                                            : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                    m_sceneImageInitialized ? VK_ACCESS_SHADER_READ_BIT : 0,
+                    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                    VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
+    beginSceneRendering(commandBuffer, VK_ATTACHMENT_LOAD_OP_CLEAR);
+#else
+    VkRenderingAttachmentInfo directAttachment{};
+    directAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    directAttachment.imageView = m_swapchainImageViews[imageIndex];
+    directAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    directAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    directAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    directAttachment.clearValue.color = {{0.1f, 0.1f, 0.1f, 1.0f}};
+    VkRenderingInfo directRendering{};
+    directRendering.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    directRendering.renderArea = {{0, 0}, m_swapchainExtent};
+    directRendering.layerCount = 1;
+    directRendering.colorAttachmentCount = 1;
+    directRendering.pColorAttachments = &directAttachment;
+    vkCmdBeginRendering(commandBuffer, &directRendering);
+    VkViewport viewport{};
+    viewport.width = static_cast<float>(m_swapchainExtent.width);
+    viewport.height = static_cast<float>(m_swapchainExtent.height);
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    VkRect2D fullScissor{{0, 0}, m_swapchainExtent};
+    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+    vkCmdSetScissor(commandBuffer, 0, 1, &fullScissor);
+#endif
+
+    uint32_t visibleRectangleIndex = 0;
+    for (size_t listIndex = 0; listIndex < m_rectangles.size();) {
+        const Rectangle* rectangle = m_rectangles[listIndex];
+        if (!rectangle || !rectangle->visible) {
+            ++listIndex;
+            continue;
+        }
+        bool blurThisRectangle = false;
+#if defined(LYRA_ENABLE_BACKDROP_BLUR)
+        blurThisRectangle = rectangle->backdropBlurEnabled;
+#endif
+        size_t nextListIndex = listIndex + 1;
+        uint32_t rectangleCount = 1;
+        if (!blurThisRectangle) {
+            while (nextListIndex < m_rectangles.size()) {
+                const Rectangle* next = m_rectangles[nextListIndex];
+                if (!next || !next->visible) {
+                    ++nextListIndex;
+                    continue;
+                }
+                bool nextHasBlur = false;
+#if defined(LYRA_ENABLE_BACKDROP_BLUR)
+                nextHasBlur = next->backdropBlurEnabled;
+#endif
+                if (nextHasBlur || next->textureLayer != rectangle->textureLayer)
+                    break;
+                ++rectangleCount;
+                ++nextListIndex;
+            }
+        }
+#if defined(LYRA_ENABLE_BACKDROP_BLUR)
+        if (blurThisRectangle)
+            blurSceneBackdrop(commandBuffer, rectangle->x, rectangle->y,
+                              rectangle->width, rectangle->height,
+                              rectangle->backdropBlurRadius);
+#endif
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
         if (m_texturesUploaded && m_textureManager->hasTextures() &&
             m_descriptorSet != VK_NULL_HANDLE) {
-            vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                                     m_pipelineLayout, 0, 1, &m_descriptorSet,
                                     0, nullptr);
         }
-
         VkDeviceSize vertexOffset = 0;
-        vkCmdBindVertexBuffers(cmd, 0, 1, &m_vertexBuffer, &vertexOffset);
-        vkCmdBindIndexBuffer(cmd, m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
-        for (const auto& group : m_drawGroups) {
-            if (group.indexCount == 0) continue;
-
-            float pc[5] = {
-                static_cast<float>(m_fbWidth),
-                static_cast<float>(m_fbHeight),
-                (m_winWidth > 0) ? static_cast<float>(m_fbWidth) / m_winWidth : 1.0f,
-                (m_winHeight > 0) ? static_cast<float>(m_fbHeight) / m_winHeight : 1.0f,
-                static_cast<float>(group.textureLayer),
-            };
-            vkCmdPushConstants(cmd, m_pipelineLayout,
-                               VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                               0, 20, pc);
-
-            vkCmdDrawIndexed(cmd, static_cast<uint32_t>(group.indexCount), 1,
-                             static_cast<uint32_t>(group.indexOffset),
-                             0, 0);
-        }
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, &m_vertexBuffer,
+                               &vertexOffset);
+        vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer, 0,
+                             VK_INDEX_TYPE_UINT32);
+        const float rectanglePushConstants[5] = {
+            static_cast<float>(m_fbWidth), static_cast<float>(m_fbHeight),
+            m_winWidth > 0 ? static_cast<float>(m_fbWidth) / m_winWidth : 1.0f,
+            m_winHeight > 0 ? static_cast<float>(m_fbHeight) / m_winHeight : 1.0f,
+            static_cast<float>(rectangle->textureLayer),
+        };
+        vkCmdPushConstants(commandBuffer, m_pipelineLayout,
+                           VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                           0, sizeof(rectanglePushConstants), rectanglePushConstants);
+        vkCmdDrawIndexed(commandBuffer, rectangleCount * 6, 1,
+                         visibleRectangleIndex * 6, 0, 0);
+        visibleRectangleIndex += rectangleCount;
+        listIndex = nextListIndex;
     }
 
-    // Text is rendered after UI rectangles from a completely separate batch,
-    // descriptor set, glyph array, and graphics pipeline.
-    if (m_textIndexCount > 0) {
-        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_textPipeline);
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
+    const float textPushConstants[4] = {
+        static_cast<float>(m_fbWidth), static_cast<float>(m_fbHeight),
+        m_winWidth > 0 ? static_cast<float>(m_fbWidth) / m_winWidth : 1.0f,
+        m_winHeight > 0 ? static_cast<float>(m_fbHeight) / m_winHeight : 1.0f,
+    };
+    for (const TextDraw& textDraw : m_textDraws) {
+#if defined(LYRA_ENABLE_BACKDROP_BLUR)
+        if (textDraw.backdropBlurEnabled)
+            blurSceneBackdrop(commandBuffer, textDraw.x, textDraw.y,
+                              textDraw.width, textDraw.height,
+                              textDraw.backdropBlurRadius);
+#endif
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                          m_textPipeline);
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                                 m_textPipelineLayout, 0, 1,
                                 &m_textDescriptorSet, 0, nullptr);
         VkDeviceSize textVertexOffset = 0;
-        vkCmdBindVertexBuffers(cmd, 0, 1, &m_textVertexBuffer,
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, &m_textVertexBuffer,
                                &textVertexOffset);
-        vkCmdBindIndexBuffer(cmd, m_textIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
-        const float textPushConstants[4] = {
-            static_cast<float>(m_fbWidth),
-            static_cast<float>(m_fbHeight),
-            (m_winWidth > 0) ? static_cast<float>(m_fbWidth) / m_winWidth : 1.0f,
-            (m_winHeight > 0) ? static_cast<float>(m_fbHeight) / m_winHeight : 1.0f,
-        };
-        vkCmdPushConstants(cmd, m_textPipelineLayout,
+        vkCmdBindIndexBuffer(commandBuffer, m_textIndexBuffer, 0,
+                             VK_INDEX_TYPE_UINT32);
+        vkCmdPushConstants(commandBuffer, m_textPipelineLayout,
                            VK_SHADER_STAGE_VERTEX_BIT, 0,
                            sizeof(textPushConstants), textPushConstants);
-        vkCmdDrawIndexed(cmd, m_textIndexCount, 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, textDraw.indexCount, 1,
+                         textDraw.firstIndex, 0, 0);
     }
 
-    vkCmdEndRendering(cmd);
+#if defined(LYRA_ENABLE_OFFSCREEN_RENDERING)
+    vkCmdEndRendering(commandBuffer);
+    transitionImage(commandBuffer, m_sceneImage,
+                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                    VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                    VK_ACCESS_SHADER_READ_BIT);
+    m_sceneImageInitialized = true;
 
-    if (vkEndCommandBuffer(cmd) != VK_SUCCESS) {
+    const VkImageLayout oldSwapchainLayout = m_swapchainImageInitialized[imageIndex]
+        ? VK_IMAGE_LAYOUT_PRESENT_SRC_KHR : VK_IMAGE_LAYOUT_UNDEFINED;
+    transitionImage(commandBuffer, m_swapchainImages[imageIndex],
+                    oldSwapchainLayout, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                    m_swapchainImageInitialized[imageIndex]
+                        ? VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT
+                        : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                    0, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                    VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
+    VkRenderingAttachmentInfo presentAttachment{};
+    presentAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    presentAttachment.imageView = m_swapchainImageViews[imageIndex];
+    presentAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    presentAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    presentAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    VkRenderingInfo presentRendering{};
+    presentRendering.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    presentRendering.renderArea = {{0, 0}, m_swapchainExtent};
+    presentRendering.layerCount = 1;
+    presentRendering.colorAttachmentCount = 1;
+    presentRendering.pColorAttachments = &presentAttachment;
+    vkCmdBeginRendering(commandBuffer, &presentRendering);
+    VkViewport presentViewport{};
+    presentViewport.width = static_cast<float>(m_swapchainExtent.width);
+    presentViewport.height = static_cast<float>(m_swapchainExtent.height);
+    presentViewport.minDepth = 0.0f;
+    presentViewport.maxDepth = 1.0f;
+    VkRect2D presentScissor{{0, 0}, m_swapchainExtent};
+    vkCmdSetViewport(commandBuffer, 0, 1, &presentViewport);
+    vkCmdSetScissor(commandBuffer, 0, 1, &presentScissor);
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      m_backdropPipeline);
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            m_backdropPipelineLayout, 0, 1,
+                            &m_sceneDescriptorSet, 0, nullptr);
+    struct CompositePush { float texelX, texelY, sigma, horizontal; } compositePush{
+        1.0f / static_cast<float>(m_swapchainExtent.width),
+        1.0f / static_cast<float>(m_swapchainExtent.height), 0.0f,
+        m_swapchainUsesPremultipliedAlpha ? 0.0f : -1.0f};
+    vkCmdPushConstants(commandBuffer, m_backdropPipelineLayout,
+                       VK_SHADER_STAGE_FRAGMENT_BIT, 0,
+                       sizeof(compositePush), &compositePush);
+    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    vkCmdEndRendering(commandBuffer);
+    transitionImage(commandBuffer, m_swapchainImages[imageIndex],
+                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                    VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                    VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                    VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0);
+    m_swapchainImageInitialized[imageIndex] = true;
+#else
+    vkCmdEndRendering(commandBuffer);
+#endif
+
+    if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
         std::cerr << "Renderer: vkEndCommandBuffer failed\n";
-    }
 }
 
 // ---------------------------------------------------------------------------

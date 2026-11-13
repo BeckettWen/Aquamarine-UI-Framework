@@ -100,7 +100,11 @@ private:
     bool createLogicalDevice();
     bool createSwapchain();
     bool createImageViews();
+    bool createOffscreenImages();
     bool createGraphicsPipeline(const std::string& shaderDir);
+    bool createBackdropBlurResources();
+    bool createBackdropBlurPipeline();
+    bool updateBackdropDescriptorSets();
     bool createCommandPool();
     bool createBuffers();
     bool createSyncObjects();
@@ -113,6 +117,7 @@ private:
     bool createTextBuffers();
     bool updateTextDescriptorSet();
     void destroyTextResources();
+    void destroyBackdropBlurResources();
 
     // ---- cleanup ----
     void cleanupSwapchain();
@@ -125,6 +130,16 @@ private:
     bool detectBatchArrayModification();
     void updateAnimations(float deltaSeconds);
     void drawBatches(uint32_t imageIndex);
+    bool blurSceneBackdrop(VkCommandBuffer commandBuffer, float x, float y,
+                           float width, float height, float radius);
+    void beginSceneRendering(VkCommandBuffer commandBuffer,
+                             VkAttachmentLoadOp loadOp);
+    void transitionImage(VkCommandBuffer commandBuffer, VkImage image,
+                         VkImageLayout oldLayout, VkImageLayout newLayout,
+                         VkPipelineStageFlags sourceStage,
+                         VkAccessFlags sourceAccess,
+                         VkPipelineStageFlags destinationStage,
+                         VkAccessFlags destinationAccess);
 
     // ---- helpers ----
     static std::vector<char> readFile(const std::string& path);
@@ -146,6 +161,32 @@ private:
     std::vector<VkImageView> m_swapchainImageViews;
     VkFormat m_swapchainFormat = VK_FORMAT_UNDEFINED;
     VkExtent2D m_swapchainExtent = {};
+
+    // Rendering goes through an offscreen image when either backdrop feature
+    // is built. This lets in-app blur sample prior UI and lets macOS present a
+    // transparent frame over NSVisualEffectView.
+    VkImage m_sceneImage = VK_NULL_HANDLE;
+    VkDeviceMemory m_sceneImageMemory = VK_NULL_HANDLE;
+    VkImageView m_sceneImageView = VK_NULL_HANDLE;
+    bool m_sceneImageInitialized = false;
+    std::vector<bool> m_swapchainImageInitialized;
+    bool m_swapchainUsesPremultipliedAlpha = true;
+
+    VkImage m_blurScratchImage = VK_NULL_HANDLE;
+    VkDeviceMemory m_blurScratchMemory = VK_NULL_HANDLE;
+    VkImageView m_blurScratchView = VK_NULL_HANDLE;
+    VkImage m_blurredImage = VK_NULL_HANDLE;
+    VkDeviceMemory m_blurredImageMemory = VK_NULL_HANDLE;
+    VkImageView m_blurredImageView = VK_NULL_HANDLE;
+    bool m_blurImagesInitialized = false;
+    VkSampler m_backdropSampler = VK_NULL_HANDLE;
+    VkDescriptorSetLayout m_backdropDescriptorSetLayout = VK_NULL_HANDLE;
+    VkDescriptorPool m_backdropDescriptorPool = VK_NULL_HANDLE;
+    VkDescriptorSet m_sceneDescriptorSet = VK_NULL_HANDLE;
+    VkDescriptorSet m_scratchDescriptorSet = VK_NULL_HANDLE;
+    VkDescriptorSet m_blurredDescriptorSet = VK_NULL_HANDLE;
+    VkPipelineLayout m_backdropPipelineLayout = VK_NULL_HANDLE;
+    VkPipeline m_backdropPipeline = VK_NULL_HANDLE;
 
     VkPipeline m_pipeline = VK_NULL_HANDLE;
     VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
@@ -176,6 +217,14 @@ private:
     static constexpr unsigned int FONT_RASTER_SIZE = 48;
     FontAtlas m_fontAtlas;
     std::vector<TextLabel*> m_textLabels;
+    struct TextDraw {
+        uint32_t firstIndex = 0;
+        uint32_t indexCount = 0;
+        bool backdropBlurEnabled = false;
+        float backdropBlurRadius = 0.0f;
+        float x = 0.0f, y = 0.0f, width = 0.0f, height = 0.0f;
+    };
+    std::vector<TextDraw> m_textDraws;
 
     VkCommandBuffer m_commandBuffer = VK_NULL_HANDLE;
 

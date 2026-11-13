@@ -1,0 +1,12 @@
+/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/CMakeFiles/x19.dir
+/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/CMakeFiles/lyra_backdrop_shaders.dir
+/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/CMakeFiles/Experimental.dir
+/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/CMakeFiles/Nightly.dir
+/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/CMakeFiles/Continuous.dir
+/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/CMakeFiles/NightlyMemoryCheck.dir
+/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/CMakeFiles/text_atlas_test.dir
+/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/CMakeFiles/mouse_dispatch_test.dir
+/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/CMakeFiles/animation_test.dir
+/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/CMakeFiles/RUN_TESTS.dir
+/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/CMakeFiles/ALL_BUILD.dir
+/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/CMakeFiles/ZERO_CHECK.dir

@@ -1,0 +1,2701 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		0BE473F187ACCCBFCF56E352 /* ZERO_CHECK */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 1B40A15F2BF4494CA0078089 /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */;
+			buildPhases = (
+				B6241A365A32C135FF0EA04F /* Generate CMakeFiles/ZERO_CHECK */,
+			);
+			dependencies = (
+			);
+			name = ZERO_CHECK;
+			productName = ZERO_CHECK;
+		};
+		414C67709CEDC24CB5A9C893 /* ALL_BUILD */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 40713C8A86B145CD8BEED4BA /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */;
+			buildPhases = (
+				7A05D7A6D532A1724895A73D /* Generate CMakeFiles/ALL_BUILD */,
+			);
+			dependencies = (
+				37A836253BB74E718341A1A2 /* PBXTargetDependency */,
+				928882BF47934A7E810DA9F8 /* PBXTargetDependency */,
+				D311810275E8496EB4948547 /* PBXTargetDependency */,
+				CEDA982FDBF24CC7AC5FA2B1 /* PBXTargetDependency */,
+				A78DD000A5F44E47BD247D2A /* PBXTargetDependency */,
+			);
+			name = ALL_BUILD;
+			productName = ALL_BUILD;
+		};
+		4B8E48926F34F0C03FF5E8EF /* Experimental */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 02D645C9C8A642E386319CDF /* Build configuration list for PBXAggregateTarget "Experimental" */;
+			buildPhases = (
+				033FE8F9E5F57C8E6637723A /* Generate CMakeFiles/Experimental */,
+			);
+			dependencies = (
+				95EA033F33F042C68FB3648C /* PBXTargetDependency */,
+			);
+			name = Experimental;
+			productName = Experimental;
+		};
+		6AA09A4E6603F5D839976F97 /* Nightly */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 051CE25B1C354F57A2A68A10 /* Build configuration list for PBXAggregateTarget "Nightly" */;
+			buildPhases = (
+				3ABCB34E80D58562B5321BDD /* Generate CMakeFiles/Nightly */,
+			);
+			dependencies = (
+				43DF6632C2384F6AA2F41E90 /* PBXTargetDependency */,
+			);
+			name = Nightly;
+			productName = Nightly;
+		};
+		90AC3E9D5898BCA0E77E145D /* NightlyMemoryCheck */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 943AC23959B942C39490ABD5 /* Build configuration list for PBXAggregateTarget "NightlyMemoryCheck" */;
+			buildPhases = (
+				F96D001B42EDF87DFC9E57E1 /* Generate CMakeFiles/NightlyMemoryCheck */,
+			);
+			dependencies = (
+				D5946A8044344DCB9C13CB90 /* PBXTargetDependency */,
+			);
+			name = NightlyMemoryCheck;
+			productName = NightlyMemoryCheck;
+		};
+		A00EB899FF0AC1E5266B6712 /* Continuous */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = D9F849FA365742D894793794 /* Build configuration list for PBXAggregateTarget "Continuous" */;
+			buildPhases = (
+				21FC3F49200EAD6E9B39B6DF /* Generate CMakeFiles/Continuous */,
+			);
+			dependencies = (
+				4488EDB33285458EA7B87141 /* PBXTargetDependency */,
+			);
+			name = Continuous;
+			productName = Continuous;
+		};
+		D76D085E786A188E44B24B21 /* RUN_TESTS */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 0BA2B16095474D628F483AB7 /* Build configuration list for PBXAggregateTarget "RUN_TESTS" */;
+			buildPhases = (
+				003C8D08B0008F35F218E126 /* CMake PostBuild Rules */,
+			);
+			dependencies = (
+			);
+			name = RUN_TESTS;
+			productName = RUN_TESTS;
+		};
+		E106F8D31C1C05A0E83E6934 /* lyra_backdrop_shaders */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = D9A066ACFF6445C5B8BF17D4 /* Build configuration list for PBXAggregateTarget "lyra_backdrop_shaders" */;
+			buildPhases = (
+				DFE14DC0C0A9D9B8EFE799C8 /* Generate Shaders/backdrop_blur.frag.spv */,
+				59D411469848C53BF77F025B /* Generate Shaders/backdrop_blur.vert.spv */,
+				D71C7980B939C03E290789DF /* Generate CMakeFiles/lyra_backdrop_shaders */,
+			);
+			dependencies = (
+				D2483AFDA50A460687608006 /* PBXTargetDependency */,
+			);
+			name = lyra_backdrop_shaders;
+			productName = lyra_backdrop_shaders;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		02274F4B3A14465784FA8430 /* /Users/beckett/Documents/Personal Projects/X-19/Animation.hpp */ = {isa = PBXBuildFile; fileRef = 3964BD4FF4D54F6A88470A3B /* /Users/beckett/Documents/Personal Projects/X-19/Animation.hpp */; };
+		0BC69ECD27334128ABCA9657 /* /Users/beckett/Documents/Personal Projects/X-19/Animation.cpp */ = {isa = PBXBuildFile; fileRef = B5A361744C6F445987B3BF41 /* /Users/beckett/Documents/Personal Projects/X-19/Animation.cpp */; };
+		0CD65BE999094433BEC8A81B /* /Users/beckett/Documents/Personal Projects/X-19/API_Portal.hpp */ = {isa = PBXBuildFile; fileRef = DD77EB8EB1AE4CB7B3F6F70A /* /Users/beckett/Documents/Personal Projects/X-19/API_Portal.hpp */; };
+		145F81E208FA460B9E8BF2D1 /* /Users/beckett/Documents/Personal Projects/X-19/Text.cpp */ = {isa = PBXBuildFile; fileRef = 1E4AF20015744BE480A75049 /* /Users/beckett/Documents/Personal Projects/X-19/Text.cpp */; };
+		3152AF6B6E17421CBD5BFA29 /* /Users/beckett/Documents/Personal Projects/X-19/Text.cpp */ = {isa = PBXBuildFile; fileRef = 35F9563D725C4F16ADCD4E5D /* /Users/beckett/Documents/Personal Projects/X-19/Text.cpp */; };
+		31ECF061D6C142FE8A1A40AE /* /Users/beckett/Documents/Personal Projects/X-19/Rectangle.cpp */ = {isa = PBXBuildFile; fileRef = 3A1416C216204FD5B5E85B4E /* /Users/beckett/Documents/Personal Projects/X-19/Rectangle.cpp */; };
+		33F7FB9B12434CE89CBEE469 /* /Users/beckett/Documents/Personal Projects/X-19/VulkanRenderer.cpp */ = {isa = PBXBuildFile; fileRef = 9EB59034895D490B95B18D7E /* /Users/beckett/Documents/Personal Projects/X-19/VulkanRenderer.cpp */; };
+		409BDE60F9634536BCD21C57 /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */ = {isa = PBXBuildFile; fileRef = 30E6896584724B34A72B935B /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */; };
+		4797D5D2B4B04A64BE4F2B42 /* /Users/beckett/Documents/Personal Projects/X-19/Rectangle.hpp */ = {isa = PBXBuildFile; fileRef = BE0FE9BC5AE74C039B56DA57 /* /Users/beckett/Documents/Personal Projects/X-19/Rectangle.hpp */; };
+		5190ACB732754A978AB68916 /* /Users/beckett/Documents/Personal Projects/X-19/tests/TextAtlasTest.cpp */ = {isa = PBXBuildFile; fileRef = 5D351A95C30A470D967E8490 /* /Users/beckett/Documents/Personal Projects/X-19/tests/TextAtlasTest.cpp */; };
+		52D9DCE56A294B6697672DE6 /* /Users/beckett/Documents/Personal Projects/X-19/Text.cpp */ = {isa = PBXBuildFile; fileRef = 62A6A97E4FB546EB935D35AC /* /Users/beckett/Documents/Personal Projects/X-19/Text.cpp */; };
+		5EA2D212A6B748929A3D7F69 /* /Users/beckett/Documents/Personal Projects/X-19/Texture.cpp */ = {isa = PBXBuildFile; fileRef = 4994A88A530E49A29C3EB710 /* /Users/beckett/Documents/Personal Projects/X-19/Texture.cpp */; };
+		608AC46F105D4FCBB4278118 /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */ = {isa = PBXBuildFile; fileRef = 195F8B8497B545EC9ECA1C8B /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */; };
+		61F52497C9F24DB0A5447C42 /* /Users/beckett/Documents/Personal Projects/X-19/Texture.hpp */ = {isa = PBXBuildFile; fileRef = E54367DDB16849048093B899 /* /Users/beckett/Documents/Personal Projects/X-19/Texture.hpp */; };
+		632AE03FD73E456698AFC8D0 /* /Users/beckett/Documents/Personal Projects/X-19/Rectangle.cpp */ = {isa = PBXBuildFile; fileRef = 51D70C2BEBFD46D9A45CB258 /* /Users/beckett/Documents/Personal Projects/X-19/Rectangle.cpp */; };
+		702EECA6EBB1439E87101A1B /* /Users/beckett/Documents/Personal Projects/X-19/Version.hpp */ = {isa = PBXBuildFile; fileRef = E02DD1D145EE41F0B13CC435 /* /Users/beckett/Documents/Personal Projects/X-19/Version.hpp */; };
+		75150A923994434AA15F96C3 /* /Users/beckett/Documents/Personal Projects/X-19/Version.hpp */ = {isa = PBXBuildFile; fileRef = BAE4ACC05F3646369379B25C /* /Users/beckett/Documents/Personal Projects/X-19/Version.hpp */; };
+		761D8C4CE2494075B1D0A74E /* /Users/beckett/Documents/Personal Projects/X-19/VulkanRenderer.hpp */ = {isa = PBXBuildFile; fileRef = 4849495EBDF84FFA826EEC4F /* /Users/beckett/Documents/Personal Projects/X-19/VulkanRenderer.hpp */; };
+		7C0F7520992441AE9C05D216 /* /Users/beckett/Documents/Personal Projects/X-19/Version.hpp */ = {isa = PBXBuildFile; fileRef = 2D76D6F746F64306AA9F6DC1 /* /Users/beckett/Documents/Personal Projects/X-19/Version.hpp */; };
+		7D18EA14A1C84DEB858AE8D3 /* /Users/beckett/Documents/Personal Projects/X-19/Animation.cpp */ = {isa = PBXBuildFile; fileRef = 68F326DFE3934D8BB2818603 /* /Users/beckett/Documents/Personal Projects/X-19/Animation.cpp */; };
+		7ECA6458756E4B3092306440 /* /Users/beckett/Documents/Personal Projects/X-19/VulkanRenderer.cpp */ = {isa = PBXBuildFile; fileRef = C4B560FB898E4FAF83E275E1 /* /Users/beckett/Documents/Personal Projects/X-19/VulkanRenderer.cpp */; };
+		83D15E0709AE41D780072B43 /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */ = {isa = PBXBuildFile; fileRef = FBC7745EF54042A8840851D9 /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */; };
+		8F629FE9A4994AC099F43A33 /* /Users/beckett/Documents/Personal Projects/X-19/Window.hpp */ = {isa = PBXBuildFile; fileRef = A8B0EEBFC17345CF9FCB388A /* /Users/beckett/Documents/Personal Projects/X-19/Window.hpp */; };
+		9BCACBA597544054AD785FC6 /* /Users/beckett/Documents/Personal Projects/X-19/Window.cpp */ = {isa = PBXBuildFile; fileRef = A32775017EA54B31BDD35C82 /* /Users/beckett/Documents/Personal Projects/X-19/Window.cpp */; };
+		9D097CBEC61040E3B42F6837 /* /Users/beckett/Documents/Personal Projects/X-19/Texture.cpp */ = {isa = PBXBuildFile; fileRef = 5876DF87D13F474B9C9C576B /* /Users/beckett/Documents/Personal Projects/X-19/Texture.cpp */; };
+		A7E30B9FCBF74EEA878AE6EC /* /Users/beckett/Documents/Personal Projects/X-19/Text.hpp */ = {isa = PBXBuildFile; fileRef = 695CE7B7ABB64B5E91DDC9FA /* /Users/beckett/Documents/Personal Projects/X-19/Text.hpp */; };
+		AFD267A488AE43E5B4AA50F1 /* /Users/beckett/Documents/Personal Projects/X-19/tests/MouseDispatchTest.cpp */ = {isa = PBXBuildFile; fileRef = 0E98051FA1FA474EAB253F48 /* /Users/beckett/Documents/Personal Projects/X-19/tests/MouseDispatchTest.cpp */; };
+		C135B2B7A27146E19D82FCD5 /* /Users/beckett/Documents/Personal Projects/X-19/Version.hpp */ = {isa = PBXBuildFile; fileRef = 2D3620DBF7D44C43B9D0E224 /* /Users/beckett/Documents/Personal Projects/X-19/Version.hpp */; };
+		D01335132F894EBBB5549B4C /* /Users/beckett/Documents/Personal Projects/X-19/MacOSWindowBlur.swift */ = {isa = PBXBuildFile; fileRef = BF24022010ED4124B081B299 /* /Users/beckett/Documents/Personal Projects/X-19/MacOSWindowBlur.swift */; };
+		D324399EF987435788439A69 /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */ = {isa = PBXBuildFile; fileRef = 8A4A618A9BBD41F094DA261E /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */; };
+		D85EE634222B4EDD8D785276 /* /Users/beckett/Documents/Personal Projects/X-19/Animation.cpp */ = {isa = PBXBuildFile; fileRef = EC848CD0381C4C4A87E5B38D /* /Users/beckett/Documents/Personal Projects/X-19/Animation.cpp */; };
+		D8969191372F45E794F85DBC /* /Users/beckett/Documents/Personal Projects/X-19/main.cpp */ = {isa = PBXBuildFile; fileRef = D2960473FE754EEE989F1791 /* /Users/beckett/Documents/Personal Projects/X-19/main.cpp */; };
+		DBCA6792E93A494DBC6A011A /* /Users/beckett/Documents/Personal Projects/X-19/tests/AnimationTest.cpp */ = {isa = PBXBuildFile; fileRef = 293A418B4888479DB91B2F8D /* /Users/beckett/Documents/Personal Projects/X-19/tests/AnimationTest.cpp */; };
+		FCA5B350F69C437DAF26E5EB /* /Users/beckett/Documents/Personal Projects/X-19/MacOSWindowBlur.mm */ = {isa = PBXBuildFile; fileRef = B888F6654ADE46FDA212CF05 /* /Users/beckett/Documents/Personal Projects/X-19/MacOSWindowBlur.mm */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXBuildStyle section */
+		21A570220E384729934BD53E /* Release */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Release;
+		};
+		961DAF18B6E94D7FA25066B5 /* MinSizeRel */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = MinSizeRel;
+		};
+		BD377EC0A4CE46F08A30268E /* Debug */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Debug;
+		};
+		C019BA844B304DA79CDEA35A /* RelWithDebInfo */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = RelWithDebInfo;
+		};
+/* End PBXBuildStyle section */
+
+/* Begin PBXContainerItemProxy section */
+		02FE87B372BE431EAC058EBF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 03182CBA7773491DBFF64A76 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6A7C85BE9D6C8B2F19ADD563;
+			remoteInfo = text_atlas_test;
+		};
+		145E9C4A88204C278167DC0D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 03182CBA7773491DBFF64A76 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A339C55709F85090CAD2D395;
+			remoteInfo = x19;
+		};
+		161510789C3C4618ACC02299 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 03182CBA7773491DBFF64A76 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0BE473F187ACCCBFCF56E352;
+			remoteInfo = ZERO_CHECK;
+		};
+		32FE711B4334423693411354 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 03182CBA7773491DBFF64A76 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0BE473F187ACCCBFCF56E352;
+			remoteInfo = ZERO_CHECK;
+		};
+		3450243C13A74397A9713600 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 03182CBA7773491DBFF64A76 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0BE473F187ACCCBFCF56E352;
+			remoteInfo = ZERO_CHECK;
+		};
+		3E45C33DE75D4253A2AA13AE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 03182CBA7773491DBFF64A76 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0BE473F187ACCCBFCF56E352;
+			remoteInfo = ZERO_CHECK;
+		};
+		46E739E744174095ADC4C54A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 03182CBA7773491DBFF64A76 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0BE473F187ACCCBFCF56E352;
+			remoteInfo = ZERO_CHECK;
+		};
+		60FBE14FCE4C415FB2E1BBD3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 03182CBA7773491DBFF64A76 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0BE473F187ACCCBFCF56E352;
+			remoteInfo = ZERO_CHECK;
+		};
+		6B0F36E161A64042AA80899F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 03182CBA7773491DBFF64A76 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 86C43BC320B6B5A2901C4D5A;
+			remoteInfo = mouse_dispatch_test;
+		};
+		7A446A9329404EBCAD72E450 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 03182CBA7773491DBFF64A76 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0BE473F187ACCCBFCF56E352;
+			remoteInfo = ZERO_CHECK;
+		};
+		8A8B00BE17424F57A5C1435B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 03182CBA7773491DBFF64A76 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0BE473F187ACCCBFCF56E352;
+			remoteInfo = ZERO_CHECK;
+		};
+		8C9B969D9DB14EC99DB6489F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 03182CBA7773491DBFF64A76 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E106F8D31C1C05A0E83E6934;
+			remoteInfo = lyra_backdrop_shaders;
+		};
+		C4A2E5518D7A47DDB2B24CA1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 03182CBA7773491DBFF64A76 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0BE473F187ACCCBFCF56E352;
+			remoteInfo = ZERO_CHECK;
+		};
+		D527A85EBED747398D6A1A4C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 03182CBA7773491DBFF64A76 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0BE473F187ACCCBFCF56E352;
+			remoteInfo = ZERO_CHECK;
+		};
+		D7CAAFE490F44FFCAA14C86B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 03182CBA7773491DBFF64A76 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C9F0EE4EF12E3D24B3BE7D59;
+			remoteInfo = animation_test;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		00AEA9B0530A4D1CA4BE81F3 /* animation_test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = animation_test; sourceTree = BUILT_PRODUCTS_DIR; };
+		040F9FAB6BCE47F3A6162620 /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		0E98051FA1FA474EAB253F48 /* /Users/beckett/Documents/Personal Projects/X-19/tests/MouseDispatchTest.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = MouseDispatchTest.cpp; path = tests/MouseDispatchTest.cpp; sourceTree = SOURCE_ROOT; };
+		195F8B8497B545EC9ECA1C8B /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		1E4AF20015744BE480A75049 /* /Users/beckett/Documents/Personal Projects/X-19/Text.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Text.cpp; path = Text.cpp; sourceTree = SOURCE_ROOT; };
+		293A418B4888479DB91B2F8D /* /Users/beckett/Documents/Personal Projects/X-19/tests/AnimationTest.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = AnimationTest.cpp; path = tests/AnimationTest.cpp; sourceTree = SOURCE_ROOT; };
+		2D3620DBF7D44C43B9D0E224 /* /Users/beckett/Documents/Personal Projects/X-19/Version.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; name = Version.hpp; path = Version.hpp; sourceTree = SOURCE_ROOT; };
+		2D76D6F746F64306AA9F6DC1 /* /Users/beckett/Documents/Personal Projects/X-19/Version.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; name = Version.hpp; path = Version.hpp; sourceTree = SOURCE_ROOT; };
+		30E6896584724B34A72B935B /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		35F9563D725C4F16ADCD4E5D /* /Users/beckett/Documents/Personal Projects/X-19/Text.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Text.cpp; path = Text.cpp; sourceTree = SOURCE_ROOT; };
+		3964BD4FF4D54F6A88470A3B /* /Users/beckett/Documents/Personal Projects/X-19/Animation.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; name = Animation.hpp; path = Animation.hpp; sourceTree = SOURCE_ROOT; };
+		3A1416C216204FD5B5E85B4E /* /Users/beckett/Documents/Personal Projects/X-19/Rectangle.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Rectangle.cpp; path = Rectangle.cpp; sourceTree = SOURCE_ROOT; };
+		3CF77289BE214865998F1286 /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		4849495EBDF84FFA826EEC4F /* /Users/beckett/Documents/Personal Projects/X-19/VulkanRenderer.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; name = VulkanRenderer.hpp; path = VulkanRenderer.hpp; sourceTree = SOURCE_ROOT; };
+		4994A88A530E49A29C3EB710 /* /Users/beckett/Documents/Personal Projects/X-19/Texture.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Texture.cpp; path = Texture.cpp; sourceTree = SOURCE_ROOT; };
+		51D70C2BEBFD46D9A45CB258 /* /Users/beckett/Documents/Personal Projects/X-19/Rectangle.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Rectangle.cpp; path = Rectangle.cpp; sourceTree = SOURCE_ROOT; };
+		5876DF87D13F474B9C9C576B /* /Users/beckett/Documents/Personal Projects/X-19/Texture.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Texture.cpp; path = Texture.cpp; sourceTree = SOURCE_ROOT; };
+		5D351A95C30A470D967E8490 /* /Users/beckett/Documents/Personal Projects/X-19/tests/TextAtlasTest.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = TextAtlasTest.cpp; path = tests/TextAtlasTest.cpp; sourceTree = SOURCE_ROOT; };
+		62A6A97E4FB546EB935D35AC /* /Users/beckett/Documents/Personal Projects/X-19/Text.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Text.cpp; path = Text.cpp; sourceTree = SOURCE_ROOT; };
+		63C3FEA106E048F4AB348E0C /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		68F326DFE3934D8BB2818603 /* /Users/beckett/Documents/Personal Projects/X-19/Animation.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Animation.cpp; path = Animation.cpp; sourceTree = SOURCE_ROOT; };
+		695CE7B7ABB64B5E91DDC9FA /* /Users/beckett/Documents/Personal Projects/X-19/Text.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; name = Text.hpp; path = Text.hpp; sourceTree = SOURCE_ROOT; };
+		6EC1AC2AF87C4F01A918A95E /* x19 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = x19; sourceTree = BUILT_PRODUCTS_DIR; };
+		7D9A07F9B1654F1BA984B15E /* text_atlas_test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = text_atlas_test; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A4A618A9BBD41F094DA261E /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		9DD49BC09B9C47E4A25DA9A9 /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		9EB59034895D490B95B18D7E /* /Users/beckett/Documents/Personal Projects/X-19/VulkanRenderer.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = VulkanRenderer.cpp; path = VulkanRenderer.cpp; sourceTree = SOURCE_ROOT; };
+		A32775017EA54B31BDD35C82 /* /Users/beckett/Documents/Personal Projects/X-19/Window.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Window.cpp; path = Window.cpp; sourceTree = SOURCE_ROOT; };
+		A8B0EEBFC17345CF9FCB388A /* /Users/beckett/Documents/Personal Projects/X-19/Window.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; name = Window.hpp; path = Window.hpp; sourceTree = SOURCE_ROOT; };
+		B5A361744C6F445987B3BF41 /* /Users/beckett/Documents/Personal Projects/X-19/Animation.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Animation.cpp; path = Animation.cpp; sourceTree = SOURCE_ROOT; };
+		B888F6654ADE46FDA212CF05 /* /Users/beckett/Documents/Personal Projects/X-19/MacOSWindowBlur.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = MacOSWindowBlur.mm; path = MacOSWindowBlur.mm; sourceTree = SOURCE_ROOT; };
+		B963B60A6F70467C9294A7B8 /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		BAE4ACC05F3646369379B25C /* /Users/beckett/Documents/Personal Projects/X-19/Version.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; name = Version.hpp; path = Version.hpp; sourceTree = SOURCE_ROOT; };
+		BE0FE9BC5AE74C039B56DA57 /* /Users/beckett/Documents/Personal Projects/X-19/Rectangle.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; name = Rectangle.hpp; path = Rectangle.hpp; sourceTree = SOURCE_ROOT; };
+		BF24022010ED4124B081B299 /* /Users/beckett/Documents/Personal Projects/X-19/MacOSWindowBlur.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; fileEncoding = 4; name = MacOSWindowBlur.swift; path = MacOSWindowBlur.swift; sourceTree = SOURCE_ROOT; };
+		C022CB2D9E3C4D3DB5E1235E /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		C4B560FB898E4FAF83E275E1 /* /Users/beckett/Documents/Personal Projects/X-19/VulkanRenderer.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = VulkanRenderer.cpp; path = VulkanRenderer.cpp; sourceTree = SOURCE_ROOT; };
+		CC9BAF94886140A693810187 /* mouse_dispatch_test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = mouse_dispatch_test; sourceTree = BUILT_PRODUCTS_DIR; };
+		D2960473FE754EEE989F1791 /* /Users/beckett/Documents/Personal Projects/X-19/main.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = main.cpp; path = main.cpp; sourceTree = SOURCE_ROOT; };
+		DD77EB8EB1AE4CB7B3F6F70A /* /Users/beckett/Documents/Personal Projects/X-19/API_Portal.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; name = API_Portal.hpp; path = API_Portal.hpp; sourceTree = SOURCE_ROOT; };
+		E02DD1D145EE41F0B13CC435 /* /Users/beckett/Documents/Personal Projects/X-19/Version.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; name = Version.hpp; path = Version.hpp; sourceTree = SOURCE_ROOT; };
+		E54367DDB16849048093B899 /* /Users/beckett/Documents/Personal Projects/X-19/Texture.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; name = Texture.hpp; path = Texture.hpp; sourceTree = SOURCE_ROOT; };
+		EC848CD0381C4C4A87E5B38D /* /Users/beckett/Documents/Personal Projects/X-19/Animation.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Animation.cpp; path = Animation.cpp; sourceTree = SOURCE_ROOT; };
+		FBC7745EF54042A8840851D9 /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2EA38F3B8E864D9C9C54D70F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		43255A2467FD4604B3FA5B41 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E7F693CB486248D685BA74C3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EFD854B769E74203837737C6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1B575ABA955D4E68AF3636F1 /* Nightly */ = {
+			isa = PBXGroup;
+			children = (
+				7F3ADEE45F224CA89C266607 /* CMake Rules */,
+				B963B60A6F70467C9294A7B8 /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */,
+			);
+			name = Nightly;
+			sourceTree = "<group>";
+		};
+		25904042FC274C379A4DAC69 /* animation_test */ = {
+			isa = PBXGroup;
+			children = (
+				AF7DFFEAA22E4BEFA6F0A7A5 /* Header Files */,
+				B282C652D6174D83863CC7E7 /* Source Files */,
+				FBC7745EF54042A8840851D9 /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */,
+			);
+			name = animation_test;
+			sourceTree = "<group>";
+		};
+		2EF8AA77759E4C5B9F7437A0 /* ALL_BUILD */ = {
+			isa = PBXGroup;
+			children = (
+				D701752249BD41C59D54DB38 /* CMake Rules */,
+				C022CB2D9E3C4D3DB5E1235E /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */,
+			);
+			name = ALL_BUILD;
+			sourceTree = "<group>";
+		};
+		31AE90CE495144E08E676CE2 /* x19 */ = {
+			isa = PBXGroup;
+			children = (
+				A741DEF4F7E0454B938A1C2C /* Header Files */,
+				BC11B229FF164147AD6B2B52 /* Source Files */,
+				195F8B8497B545EC9ECA1C8B /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */,
+				BF24022010ED4124B081B299 /* /Users/beckett/Documents/Personal Projects/X-19/MacOSWindowBlur.swift */,
+			);
+			name = x19;
+			sourceTree = "<group>";
+		};
+		3750E68974D04CD9BB576558 /* Experimental */ = {
+			isa = PBXGroup;
+			children = (
+				EB8D14DDC30C42D0A76F049C /* CMake Rules */,
+				040F9FAB6BCE47F3A6162620 /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */,
+			);
+			name = Experimental;
+			sourceTree = "<group>";
+		};
+		3F3A1B4F10D9489ABEE5C9FE /* lyra_backdrop_shaders */ = {
+			isa = PBXGroup;
+			children = (
+				87CCD6484CC14760B3872457 /* CMake Rules */,
+				3CF77289BE214865998F1286 /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */,
+			);
+			name = lyra_backdrop_shaders;
+			sourceTree = "<group>";
+		};
+		4F99418BCFD642D6A0DAE099 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				00AEA9B0530A4D1CA4BE81F3 /* animation_test */,
+				CC9BAF94886140A693810187 /* mouse_dispatch_test */,
+				7D9A07F9B1654F1BA984B15E /* text_atlas_test */,
+				6EC1AC2AF87C4F01A918A95E /* x19 */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		70C20333DDD34F3B8A7FC688 /* Continuous */ = {
+			isa = PBXGroup;
+			children = (
+				CF0762025F71402DB88E0C5E /* CMake Rules */,
+				63C3FEA106E048F4AB348E0C /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */,
+			);
+			name = Continuous;
+			sourceTree = "<group>";
+		};
+		71C0EFB69A69417E94FA5501 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		7F3ADEE45F224CA89C266607 /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		83968B972A9E482CB80E45D5 /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				1E4AF20015744BE480A75049 /* /Users/beckett/Documents/Personal Projects/X-19/Text.cpp */,
+				5D351A95C30A470D967E8490 /* /Users/beckett/Documents/Personal Projects/X-19/tests/TextAtlasTest.cpp */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		87CCD6484CC14760B3872457 /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		92464F567CD04A7A9C5FF2E1 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		9D8AEF8F68C04FF9B41386AC /* Header Files */ = {
+			isa = PBXGroup;
+			children = (
+				2D76D6F746F64306AA9F6DC1 /* /Users/beckett/Documents/Personal Projects/X-19/Version.hpp */,
+			);
+			name = "Header Files";
+			sourceTree = "<group>";
+		};
+		9F19CF9663ED4D33B4DC7334 /* Header Files */ = {
+			isa = PBXGroup;
+			children = (
+				2D3620DBF7D44C43B9D0E224 /* /Users/beckett/Documents/Personal Projects/X-19/Version.hpp */,
+			);
+			name = "Header Files";
+			sourceTree = "<group>";
+		};
+		A741DEF4F7E0454B938A1C2C /* Header Files */ = {
+			isa = PBXGroup;
+			children = (
+				DD77EB8EB1AE4CB7B3F6F70A /* /Users/beckett/Documents/Personal Projects/X-19/API_Portal.hpp */,
+				3964BD4FF4D54F6A88470A3B /* /Users/beckett/Documents/Personal Projects/X-19/Animation.hpp */,
+				BE0FE9BC5AE74C039B56DA57 /* /Users/beckett/Documents/Personal Projects/X-19/Rectangle.hpp */,
+				695CE7B7ABB64B5E91DDC9FA /* /Users/beckett/Documents/Personal Projects/X-19/Text.hpp */,
+				E54367DDB16849048093B899 /* /Users/beckett/Documents/Personal Projects/X-19/Texture.hpp */,
+				BAE4ACC05F3646369379B25C /* /Users/beckett/Documents/Personal Projects/X-19/Version.hpp */,
+				4849495EBDF84FFA826EEC4F /* /Users/beckett/Documents/Personal Projects/X-19/VulkanRenderer.hpp */,
+				A8B0EEBFC17345CF9FCB388A /* /Users/beckett/Documents/Personal Projects/X-19/Window.hpp */,
+			);
+			name = "Header Files";
+			sourceTree = "<group>";
+		};
+		AA912359D23745A3A5F7E742 /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				B5A361744C6F445987B3BF41 /* /Users/beckett/Documents/Personal Projects/X-19/Animation.cpp */,
+				3A1416C216204FD5B5E85B4E /* /Users/beckett/Documents/Personal Projects/X-19/Rectangle.cpp */,
+				62A6A97E4FB546EB935D35AC /* /Users/beckett/Documents/Personal Projects/X-19/Text.cpp */,
+				5876DF87D13F474B9C9C576B /* /Users/beckett/Documents/Personal Projects/X-19/Texture.cpp */,
+				C4B560FB898E4FAF83E275E1 /* /Users/beckett/Documents/Personal Projects/X-19/VulkanRenderer.cpp */,
+				0E98051FA1FA474EAB253F48 /* /Users/beckett/Documents/Personal Projects/X-19/tests/MouseDispatchTest.cpp */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		AF7DFFEAA22E4BEFA6F0A7A5 /* Header Files */ = {
+			isa = PBXGroup;
+			children = (
+				E02DD1D145EE41F0B13CC435 /* /Users/beckett/Documents/Personal Projects/X-19/Version.hpp */,
+			);
+			name = "Header Files";
+			sourceTree = "<group>";
+		};
+		B282C652D6174D83863CC7E7 /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				EC848CD0381C4C4A87E5B38D /* /Users/beckett/Documents/Personal Projects/X-19/Animation.cpp */,
+				293A418B4888479DB91B2F8D /* /Users/beckett/Documents/Personal Projects/X-19/tests/AnimationTest.cpp */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		BC11B229FF164147AD6B2B52 /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				68F326DFE3934D8BB2818603 /* /Users/beckett/Documents/Personal Projects/X-19/Animation.cpp */,
+				B888F6654ADE46FDA212CF05 /* /Users/beckett/Documents/Personal Projects/X-19/MacOSWindowBlur.mm */,
+				51D70C2BEBFD46D9A45CB258 /* /Users/beckett/Documents/Personal Projects/X-19/Rectangle.cpp */,
+				35F9563D725C4F16ADCD4E5D /* /Users/beckett/Documents/Personal Projects/X-19/Text.cpp */,
+				4994A88A530E49A29C3EB710 /* /Users/beckett/Documents/Personal Projects/X-19/Texture.cpp */,
+				9EB59034895D490B95B18D7E /* /Users/beckett/Documents/Personal Projects/X-19/VulkanRenderer.cpp */,
+				A32775017EA54B31BDD35C82 /* /Users/beckett/Documents/Personal Projects/X-19/Window.cpp */,
+				D2960473FE754EEE989F1791 /* /Users/beckett/Documents/Personal Projects/X-19/main.cpp */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		CAA0110121A64B62BA66058F /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		CF0762025F71402DB88E0C5E /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		D701752249BD41C59D54DB38 /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		DA2E85A19D004E6B954F6446 /* text_atlas_test */ = {
+			isa = PBXGroup;
+			children = (
+				9F19CF9663ED4D33B4DC7334 /* Header Files */,
+				83968B972A9E482CB80E45D5 /* Source Files */,
+				30E6896584724B34A72B935B /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */,
+			);
+			name = text_atlas_test;
+			sourceTree = "<group>";
+		};
+		DAD804E885A64C678C29DD04 /* mouse_dispatch_test */ = {
+			isa = PBXGroup;
+			children = (
+				9D8AEF8F68C04FF9B41386AC /* Header Files */,
+				AA912359D23745A3A5F7E742 /* Source Files */,
+				8A4A618A9BBD41F094DA261E /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */,
+			);
+			name = mouse_dispatch_test;
+			sourceTree = "<group>";
+		};
+		E5AF4BBF15FF43D389851165 = {
+			isa = PBXGroup;
+			children = (
+				2EF8AA77759E4C5B9F7437A0 /* ALL_BUILD */,
+				70C20333DDD34F3B8A7FC688 /* Continuous */,
+				3750E68974D04CD9BB576558 /* Experimental */,
+				1B575ABA955D4E68AF3636F1 /* Nightly */,
+				ED1608D564844CE8B9C59606 /* NightlyMemoryCheck */,
+				25904042FC274C379A4DAC69 /* animation_test */,
+				3F3A1B4F10D9489ABEE5C9FE /* lyra_backdrop_shaders */,
+				DAD804E885A64C678C29DD04 /* mouse_dispatch_test */,
+				DA2E85A19D004E6B954F6446 /* text_atlas_test */,
+				31AE90CE495144E08E676CE2 /* x19 */,
+				4F99418BCFD642D6A0DAE099 /* Products */,
+				92464F567CD04A7A9C5FF2E1 /* Frameworks */,
+				71C0EFB69A69417E94FA5501 /* Resources */,
+			);
+			sourceTree = "<group>";
+		};
+		EB8D14DDC30C42D0A76F049C /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		ED1608D564844CE8B9C59606 /* NightlyMemoryCheck */ = {
+			isa = PBXGroup;
+			children = (
+				CAA0110121A64B62BA66058F /* CMake Rules */,
+				9DD49BC09B9C47E4A25DA9A9 /* /Users/beckett/Documents/Personal Projects/X-19/CMakeLists.txt */,
+			);
+			name = NightlyMemoryCheck;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		6A7C85BE9D6C8B2F19ADD563 /* text_atlas_test */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9CFC1E7AF40B4CC5A6A516CE /* Build configuration list for PBXNativeTarget "text_atlas_test" */;
+			buildPhases = (
+				DE2A902C28D44685B4E4759A /* Sources */,
+				2EA38F3B8E864D9C9C54D70F /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F541C773438B4D06A00C7823 /* PBXTargetDependency */,
+			);
+			name = text_atlas_test;
+			productName = text_atlas_test;
+			productReference = 7D9A07F9B1654F1BA984B15E /* text_atlas_test */;
+			productType = "com.apple.product-type.tool";
+		};
+		86C43BC320B6B5A2901C4D5A /* mouse_dispatch_test */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8513BEF6D7FC4E1CB06813F8 /* Build configuration list for PBXNativeTarget "mouse_dispatch_test" */;
+			buildPhases = (
+				9D95012384B74056920C20F3 /* Sources */,
+				EFD854B769E74203837737C6 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				40EA65B51CF84BCDBEC9CA29 /* PBXTargetDependency */,
+			);
+			name = mouse_dispatch_test;
+			productName = mouse_dispatch_test;
+			productReference = CC9BAF94886140A693810187 /* mouse_dispatch_test */;
+			productType = "com.apple.product-type.tool";
+		};
+		A339C55709F85090CAD2D395 /* x19 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 46F61755302A43A689979816 /* Build configuration list for PBXNativeTarget "x19" */;
+			buildPhases = (
+				A1FCE9A86E304914AA290E9B /* Sources */,
+				E7F693CB486248D685BA74C3 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				819B3617727841D784490614 /* PBXTargetDependency */,
+				26EE5330716C4A9F937E3E5F /* PBXTargetDependency */,
+			);
+			name = x19;
+			productName = x19;
+			productReference = 6EC1AC2AF87C4F01A918A95E /* x19 */;
+			productType = "com.apple.product-type.tool";
+		};
+		C9F0EE4EF12E3D24B3BE7D59 /* animation_test */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9CC14CD39870446DA240158B /* Build configuration list for PBXNativeTarget "animation_test" */;
+			buildPhases = (
+				4C390A6230034D43ADAC7462 /* Sources */,
+				43255A2467FD4604B3FA5B41 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				EF7F3490353D4836B7D365F7 /* PBXTargetDependency */,
+			);
+			name = animation_test;
+			productName = animation_test;
+			productReference = 00AEA9B0530A4D1CA4BE81F3 /* animation_test */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		03182CBA7773491DBFF64A76 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2700;
+			};
+			buildConfigurationList = C8CC839E83F44A37958D9D91 /* Build configuration list for PBXProject "Lyra" */;
+			buildSettings = {
+			};
+			buildStyles = (
+				BD377EC0A4CE46F08A30268E /* Debug */,
+				21A570220E384729934BD53E /* Release */,
+				961DAF18B6E94D7FA25066B5 /* MinSizeRel */,
+				C019BA844B304DA79CDEA35A /* RelWithDebInfo */,
+			);
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 0;
+			mainGroup = E5AF4BBF15FF43D389851165;
+			projectDirPath = "/Users/beckett/Documents/Personal Projects/X-19";
+			projectRoot = "";
+			targets = (
+				414C67709CEDC24CB5A9C893 /* ALL_BUILD */,
+				C9F0EE4EF12E3D24B3BE7D59 /* animation_test */,
+				A00EB899FF0AC1E5266B6712 /* Continuous */,
+				4B8E48926F34F0C03FF5E8EF /* Experimental */,
+				E106F8D31C1C05A0E83E6934 /* lyra_backdrop_shaders */,
+				86C43BC320B6B5A2901C4D5A /* mouse_dispatch_test */,
+				6AA09A4E6603F5D839976F97 /* Nightly */,
+				90AC3E9D5898BCA0E77E145D /* NightlyMemoryCheck */,
+				D76D085E786A188E44B24B21 /* RUN_TESTS */,
+				6A7C85BE9D6C8B2F19ADD563 /* text_atlas_test */,
+				A339C55709F85090CAD2D395 /* x19 */,
+				0BE473F187ACCCBFCF56E352 /* ZERO_CHECK */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		003C8D08B0008F35F218E126 /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "CMake PostBuild Rules";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e
+if test \"$CONFIGURATION\" = \"Debug\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /opt/homebrew/bin/ctest -C $CONFIGURATION$EFFECTIVE_PLATFORM_NAME
+fi
+if test \"$CONFIGURATION\" = \"Release\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /opt/homebrew/bin/ctest -C $CONFIGURATION$EFFECTIVE_PLATFORM_NAME
+fi
+if test \"$CONFIGURATION\" = \"MinSizeRel\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /opt/homebrew/bin/ctest -C $CONFIGURATION$EFFECTIVE_PLATFORM_NAME
+fi
+if test \"$CONFIGURATION\" = \"RelWithDebInfo\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /opt/homebrew/bin/ctest -C $CONFIGURATION$EFFECTIVE_PLATFORM_NAME
+fi
+";
+			showEnvVarsInLog = 0;
+		};
+		033FE8F9E5F57C8E6637723A /* Generate CMakeFiles/Experimental */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Generate CMakeFiles/Experimental";
+			outputPaths = (
+"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/CMakeFiles/Experimental"			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e
+if test \"$CONFIGURATION\" = \"Debug\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /opt/homebrew/bin/ctest -C Debug -DMODEL=Experimental -S CMakeFiles/CTestScript.cmake -V
+fi
+if test \"$CONFIGURATION\" = \"Release\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /opt/homebrew/bin/ctest -C Release -DMODEL=Experimental -S CMakeFiles/CTestScript.cmake -V
+fi
+if test \"$CONFIGURATION\" = \"MinSizeRel\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /opt/homebrew/bin/ctest -C MinSizeRel -DMODEL=Experimental -S CMakeFiles/CTestScript.cmake -V
+fi
+if test \"$CONFIGURATION\" = \"RelWithDebInfo\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /opt/homebrew/bin/ctest -C RelWithDebInfo -DMODEL=Experimental -S CMakeFiles/CTestScript.cmake -V
+fi
+";
+			showEnvVarsInLog = 0;
+		};
+		09FB783FD30DC6E66DF354AF = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		21FC3F49200EAD6E9B39B6DF /* Generate CMakeFiles/Continuous */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Generate CMakeFiles/Continuous";
+			outputPaths = (
+"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/CMakeFiles/Continuous"			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e
+if test \"$CONFIGURATION\" = \"Debug\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /opt/homebrew/bin/ctest -C Debug -DMODEL=Continuous -S CMakeFiles/CTestScript.cmake -V
+fi
+if test \"$CONFIGURATION\" = \"Release\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /opt/homebrew/bin/ctest -C Release -DMODEL=Continuous -S CMakeFiles/CTestScript.cmake -V
+fi
+if test \"$CONFIGURATION\" = \"MinSizeRel\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /opt/homebrew/bin/ctest -C MinSizeRel -DMODEL=Continuous -S CMakeFiles/CTestScript.cmake -V
+fi
+if test \"$CONFIGURATION\" = \"RelWithDebInfo\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /opt/homebrew/bin/ctest -C RelWithDebInfo -DMODEL=Continuous -S CMakeFiles/CTestScript.cmake -V
+fi
+";
+			showEnvVarsInLog = 0;
+		};
+		23E0E19C1FE635DB84934AD9 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		2449A5685FB59C9535E77916 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		323E6CE94951678BF055CC89 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		3ABCB34E80D58562B5321BDD /* Generate CMakeFiles/Nightly */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Generate CMakeFiles/Nightly";
+			outputPaths = (
+"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/CMakeFiles/Nightly"			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e
+if test \"$CONFIGURATION\" = \"Debug\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /opt/homebrew/bin/ctest -C Debug -DMODEL=Nightly -S CMakeFiles/CTestScript.cmake -V
+fi
+if test \"$CONFIGURATION\" = \"Release\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /opt/homebrew/bin/ctest -C Release -DMODEL=Nightly -S CMakeFiles/CTestScript.cmake -V
+fi
+if test \"$CONFIGURATION\" = \"MinSizeRel\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /opt/homebrew/bin/ctest -C MinSizeRel -DMODEL=Nightly -S CMakeFiles/CTestScript.cmake -V
+fi
+if test \"$CONFIGURATION\" = \"RelWithDebInfo\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /opt/homebrew/bin/ctest -C RelWithDebInfo -DMODEL=Nightly -S CMakeFiles/CTestScript.cmake -V
+fi
+";
+			showEnvVarsInLog = 0;
+		};
+		3C0110FC8322DE7E50886E21 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		59D411469848C53BF77F025B /* Generate Shaders/backdrop_blur.vert.spv */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+"/Users/beckett/Documents/Personal Projects/X-19/Shaders/backdrop_blur.vert"			);
+			name = "Generate Shaders/backdrop_blur.vert.spv";
+			outputPaths = (
+"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Shaders/backdrop_blur.vert.spv"			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e
+if test \"$CONFIGURATION\" = \"Debug\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /Users/beckett/VulkanSDK/1.4.350.1/macOS/bin/glslc \"/Users/beckett/Documents/Personal Projects/X-19/Shaders/backdrop_blur.vert\" -o \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Shaders/backdrop_blur.vert.spv\"
+fi
+if test \"$CONFIGURATION\" = \"Release\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /Users/beckett/VulkanSDK/1.4.350.1/macOS/bin/glslc \"/Users/beckett/Documents/Personal Projects/X-19/Shaders/backdrop_blur.vert\" -o \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Shaders/backdrop_blur.vert.spv\"
+fi
+if test \"$CONFIGURATION\" = \"MinSizeRel\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /Users/beckett/VulkanSDK/1.4.350.1/macOS/bin/glslc \"/Users/beckett/Documents/Personal Projects/X-19/Shaders/backdrop_blur.vert\" -o \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Shaders/backdrop_blur.vert.spv\"
+fi
+if test \"$CONFIGURATION\" = \"RelWithDebInfo\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /Users/beckett/VulkanSDK/1.4.350.1/macOS/bin/glslc \"/Users/beckett/Documents/Personal Projects/X-19/Shaders/backdrop_blur.vert\" -o \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Shaders/backdrop_blur.vert.spv\"
+fi
+";
+			showEnvVarsInLog = 0;
+		};
+		7A05D7A6D532A1724895A73D /* Generate CMakeFiles/ALL_BUILD */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Generate CMakeFiles/ALL_BUILD";
+			outputPaths = (
+"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/CMakeFiles/ALL_BUILD"			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e
+if test \"$CONFIGURATION\" = \"Debug\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  echo Build\\ all\\ projects
+fi
+if test \"$CONFIGURATION\" = \"Release\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  echo Build\\ all\\ projects
+fi
+if test \"$CONFIGURATION\" = \"MinSizeRel\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  echo Build\\ all\\ projects
+fi
+if test \"$CONFIGURATION\" = \"RelWithDebInfo\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  echo Build\\ all\\ projects
+fi
+";
+			showEnvVarsInLog = 0;
+		};
+		910A41151295C5F9742C25BD = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		9B50530E35CC49C82C2FACCF = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		A68D7F74133ED74D8658B427 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		B6241A365A32C135FF0EA04F /* Generate CMakeFiles/ZERO_CHECK */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Generate CMakeFiles/ZERO_CHECK";
+			outputPaths = (
+"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/CMakeFiles/ZERO_CHECK"			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e
+if test \"$CONFIGURATION\" = \"Debug\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  make -f /Users/beckett/Documents/Personal\\ Projects/X-19/build-macos-blur/CMakeScripts/ReRunCMake.make
+fi
+if test \"$CONFIGURATION\" = \"Release\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  make -f /Users/beckett/Documents/Personal\\ Projects/X-19/build-macos-blur/CMakeScripts/ReRunCMake.make
+fi
+if test \"$CONFIGURATION\" = \"MinSizeRel\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  make -f /Users/beckett/Documents/Personal\\ Projects/X-19/build-macos-blur/CMakeScripts/ReRunCMake.make
+fi
+if test \"$CONFIGURATION\" = \"RelWithDebInfo\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  make -f /Users/beckett/Documents/Personal\\ Projects/X-19/build-macos-blur/CMakeScripts/ReRunCMake.make
+fi
+";
+			showEnvVarsInLog = 0;
+		};
+		D71C7980B939C03E290789DF /* Generate CMakeFiles/lyra_backdrop_shaders */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Shaders/backdrop_blur.frag.spv","/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Shaders/backdrop_blur.vert.spv"			);
+			name = "Generate CMakeFiles/lyra_backdrop_shaders";
+			outputPaths = (
+"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/CMakeFiles/lyra_backdrop_shaders"			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e
+if test \"$CONFIGURATION\" = \"Debug\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+fi
+if test \"$CONFIGURATION\" = \"Release\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+fi
+if test \"$CONFIGURATION\" = \"MinSizeRel\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+fi
+if test \"$CONFIGURATION\" = \"RelWithDebInfo\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+fi
+";
+			showEnvVarsInLog = 0;
+		};
+		DFE14DC0C0A9D9B8EFE799C8 /* Generate Shaders/backdrop_blur.frag.spv */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+"/Users/beckett/Documents/Personal Projects/X-19/Shaders/backdrop_blur.frag"			);
+			name = "Generate Shaders/backdrop_blur.frag.spv";
+			outputPaths = (
+"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Shaders/backdrop_blur.frag.spv"			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e
+if test \"$CONFIGURATION\" = \"Debug\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /Users/beckett/VulkanSDK/1.4.350.1/macOS/bin/glslc \"/Users/beckett/Documents/Personal Projects/X-19/Shaders/backdrop_blur.frag\" -o \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Shaders/backdrop_blur.frag.spv\"
+fi
+if test \"$CONFIGURATION\" = \"Release\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /Users/beckett/VulkanSDK/1.4.350.1/macOS/bin/glslc \"/Users/beckett/Documents/Personal Projects/X-19/Shaders/backdrop_blur.frag\" -o \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Shaders/backdrop_blur.frag.spv\"
+fi
+if test \"$CONFIGURATION\" = \"MinSizeRel\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /Users/beckett/VulkanSDK/1.4.350.1/macOS/bin/glslc \"/Users/beckett/Documents/Personal Projects/X-19/Shaders/backdrop_blur.frag\" -o \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Shaders/backdrop_blur.frag.spv\"
+fi
+if test \"$CONFIGURATION\" = \"RelWithDebInfo\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /Users/beckett/VulkanSDK/1.4.350.1/macOS/bin/glslc \"/Users/beckett/Documents/Personal Projects/X-19/Shaders/backdrop_blur.frag\" -o \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Shaders/backdrop_blur.frag.spv\"
+fi
+";
+			showEnvVarsInLog = 0;
+		};
+		F96D001B42EDF87DFC9E57E1 /* Generate CMakeFiles/NightlyMemoryCheck */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Generate CMakeFiles/NightlyMemoryCheck";
+			outputPaths = (
+"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/CMakeFiles/NightlyMemoryCheck"			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e
+if test \"$CONFIGURATION\" = \"Debug\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /opt/homebrew/bin/ctest -C Debug -DMODEL=NightlyMemoryCheck -S CMakeFiles/CTestScript.cmake -V
+fi
+if test \"$CONFIGURATION\" = \"Release\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /opt/homebrew/bin/ctest -C Release -DMODEL=NightlyMemoryCheck -S CMakeFiles/CTestScript.cmake -V
+fi
+if test \"$CONFIGURATION\" = \"MinSizeRel\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /opt/homebrew/bin/ctest -C MinSizeRel -DMODEL=NightlyMemoryCheck -S CMakeFiles/CTestScript.cmake -V
+fi
+if test \"$CONFIGURATION\" = \"RelWithDebInfo\"; then :
+  cd \"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur\"
+  /opt/homebrew/bin/ctest -C RelWithDebInfo -DMODEL=NightlyMemoryCheck -S CMakeFiles/CTestScript.cmake -V
+fi
+";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4C390A6230034D43ADAC7462 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D85EE634222B4EDD8D785276 /* /Users/beckett/Documents/Personal Projects/X-19/Animation.cpp */,
+				DBCA6792E93A494DBC6A011A /* /Users/beckett/Documents/Personal Projects/X-19/tests/AnimationTest.cpp */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9D95012384B74056920C20F3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0BC69ECD27334128ABCA9657 /* /Users/beckett/Documents/Personal Projects/X-19/Animation.cpp */,
+				31ECF061D6C142FE8A1A40AE /* /Users/beckett/Documents/Personal Projects/X-19/Rectangle.cpp */,
+				52D9DCE56A294B6697672DE6 /* /Users/beckett/Documents/Personal Projects/X-19/Text.cpp */,
+				9D097CBEC61040E3B42F6837 /* /Users/beckett/Documents/Personal Projects/X-19/Texture.cpp */,
+				7ECA6458756E4B3092306440 /* /Users/beckett/Documents/Personal Projects/X-19/VulkanRenderer.cpp */,
+				AFD267A488AE43E5B4AA50F1 /* /Users/beckett/Documents/Personal Projects/X-19/tests/MouseDispatchTest.cpp */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1FCE9A86E304914AA290E9B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7D18EA14A1C84DEB858AE8D3 /* /Users/beckett/Documents/Personal Projects/X-19/Animation.cpp */,
+				FCA5B350F69C437DAF26E5EB /* /Users/beckett/Documents/Personal Projects/X-19/MacOSWindowBlur.mm */,
+				D01335132F894EBBB5549B4C /* /Users/beckett/Documents/Personal Projects/X-19/MacOSWindowBlur.swift */,
+				632AE03FD73E456698AFC8D0 /* /Users/beckett/Documents/Personal Projects/X-19/Rectangle.cpp */,
+				3152AF6B6E17421CBD5BFA29 /* /Users/beckett/Documents/Personal Projects/X-19/Text.cpp */,
+				5EA2D212A6B748929A3D7F69 /* /Users/beckett/Documents/Personal Projects/X-19/Texture.cpp */,
+				33F7FB9B12434CE89CBEE469 /* /Users/beckett/Documents/Personal Projects/X-19/VulkanRenderer.cpp */,
+				9BCACBA597544054AD785FC6 /* /Users/beckett/Documents/Personal Projects/X-19/Window.cpp */,
+				D8969191372F45E794F85DBC /* /Users/beckett/Documents/Personal Projects/X-19/main.cpp */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DE2A902C28D44685B4E4759A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				145F81E208FA460B9E8BF2D1 /* /Users/beckett/Documents/Personal Projects/X-19/Text.cpp */,
+				5190ACB732754A978AB68916 /* /Users/beckett/Documents/Personal Projects/X-19/tests/TextAtlasTest.cpp */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		26EE5330716C4A9F937E3E5F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E106F8D31C1C05A0E83E6934 /* lyra_backdrop_shaders */;
+			targetProxy = 8C9B969D9DB14EC99DB6489F /* PBXContainerItemProxy */;
+		};
+		37A836253BB74E718341A1A2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0BE473F187ACCCBFCF56E352 /* ZERO_CHECK */;
+			targetProxy = 8A8B00BE17424F57A5C1435B /* PBXContainerItemProxy */;
+		};
+		40EA65B51CF84BCDBEC9CA29 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0BE473F187ACCCBFCF56E352 /* ZERO_CHECK */;
+			targetProxy = D527A85EBED747398D6A1A4C /* PBXContainerItemProxy */;
+		};
+		43DF6632C2384F6AA2F41E90 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0BE473F187ACCCBFCF56E352 /* ZERO_CHECK */;
+			targetProxy = 3E45C33DE75D4253A2AA13AE /* PBXContainerItemProxy */;
+		};
+		4488EDB33285458EA7B87141 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0BE473F187ACCCBFCF56E352 /* ZERO_CHECK */;
+			targetProxy = 60FBE14FCE4C415FB2E1BBD3 /* PBXContainerItemProxy */;
+		};
+		819B3617727841D784490614 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0BE473F187ACCCBFCF56E352 /* ZERO_CHECK */;
+			targetProxy = 32FE711B4334423693411354 /* PBXContainerItemProxy */;
+		};
+		928882BF47934A7E810DA9F8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A339C55709F85090CAD2D395 /* x19 */;
+			targetProxy = 145E9C4A88204C278167DC0D /* PBXContainerItemProxy */;
+		};
+		95EA033F33F042C68FB3648C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0BE473F187ACCCBFCF56E352 /* ZERO_CHECK */;
+			targetProxy = 161510789C3C4618ACC02299 /* PBXContainerItemProxy */;
+		};
+		A78DD000A5F44E47BD247D2A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C9F0EE4EF12E3D24B3BE7D59 /* animation_test */;
+			targetProxy = D7CAAFE490F44FFCAA14C86B /* PBXContainerItemProxy */;
+		};
+		CEDA982FDBF24CC7AC5FA2B1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 86C43BC320B6B5A2901C4D5A /* mouse_dispatch_test */;
+			targetProxy = 6B0F36E161A64042AA80899F /* PBXContainerItemProxy */;
+		};
+		D2483AFDA50A460687608006 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0BE473F187ACCCBFCF56E352 /* ZERO_CHECK */;
+			targetProxy = 7A446A9329404EBCAD72E450 /* PBXContainerItemProxy */;
+		};
+		D311810275E8496EB4948547 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6A7C85BE9D6C8B2F19ADD563 /* text_atlas_test */;
+			targetProxy = 02FE87B372BE431EAC058EBF /* PBXContainerItemProxy */;
+		};
+		D5946A8044344DCB9C13CB90 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0BE473F187ACCCBFCF56E352 /* ZERO_CHECK */;
+			targetProxy = 3450243C13A74397A9713600 /* PBXContainerItemProxy */;
+		};
+		EF7F3490353D4836B7D365F7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0BE473F187ACCCBFCF56E352 /* ZERO_CHECK */;
+			targetProxy = 46E739E744174095ADC4C54A /* PBXContainerItemProxy */;
+		};
+		F541C773438B4D06A00C7823 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0BE473F187ACCCBFCF56E352 /* ZERO_CHECK */;
+			targetProxy = C4A2E5518D7A47DDB2B24CA1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		019FB912708C495BB7CADF74 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = Nightly;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		0340E9BA32474CC1AC1BA414 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Release";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("\"/Users/beckett/Documents/Personal Projects/X-19\"","$(inherited)");
+				INSTALL_PATH = "";
+				LD_RUNPATH_SEARCH_PATHS = ("/Users/beckett/VulkanSDK/1.4.350.1/macOS/lib /opt/homebrew/lib","$(inherited)");
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CPLUSPLUSFLAGS = "    -DNDEBUG '-std=gnu++23' ";
+				OTHER_LDFLAGS = (" -Wl,-search_paths_first -Wl,-headerpad_max_install_names",/Users/beckett/VulkanSDK/1.4.350.1/macOS/lib/libvulkan.dylib,/opt/homebrew/lib/libglfw.3.4.dylib,/opt/homebrew/lib/libfreetype.dylib,"$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = mouse_dispatch_test;
+				SECTORDER_FLAGS = "";
+				SYSTEM_HEADER_SEARCH_PATHS = (/Users/beckett/VulkanSDK/1.4.350.1/macOS/include,/opt/homebrew/include,/Library/Frameworks/Mono.framework/Headers,/opt/homebrew/include/freetype2,"$(inherited)");
+				TARGET_TEMP_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/build/mouse_dispatch_test.build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		03D5697553FF46B08A129BEB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = Continuous;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		0AAD8845C48F4B78A5EDAF58 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		0FA9C24A78594E46AA3BF488 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		13759A31BCDE452AA2324F84 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/RelWithDebInfo";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 1;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","'LYRA_ENABLE_MACOS_WINDOW_BLUR=1'","'LYRA_ENABLE_BACKDROP_BLUR=1'","'LYRA_ENABLE_OFFSCREEN_RENDERING=1'","'SHADER_PATH=\"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Shaders\"'","'ASSET_PATH=\"/Users/beckett/Documents/Personal Projects/X-19/Assets\"'","'FONT_PATH=\"/System/Library/Fonts/SFNS.ttf\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("\"/Users/beckett/Documents/Personal Projects/X-19\"","$(inherited)");
+				INSTALL_PATH = "";
+				LD_RUNPATH_SEARCH_PATHS = ("/Users/beckett/VulkanSDK/1.4.350.1/macOS/lib /opt/homebrew/lib","$(inherited)");
+				LIBRARY_SEARCH_PATHS = ("/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk/usr/lib/swift/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk/usr/lib/swift,"$(inherited)");
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CPLUSPLUSFLAGS = "       -DNDEBUG '-std=gnu++23' ";
+				OTHER_LDFLAGS = ("","-framework AppKit",/Users/beckett/VulkanSDK/1.4.350.1/macOS/lib/libvulkan.dylib,/opt/homebrew/lib/libglfw.3.4.dylib,/opt/homebrew/lib/libfreetype.dylib,"-framework Cocoa","-framework IOKit","-framework CoreVideo","-framework QuartzCore","-framework Metal","-lobjc","-lc++","-lc++","$(inherited)");
+				OTHER_REZFLAGS = "";
+				OTHER_SWIFT_FLAGS = ("      ","$(inherited)");
+				PRODUCT_NAME = x19;
+				SECTORDER_FLAGS = "";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (LYRA_ENABLE_MACOS_WINDOW_BLUR,LYRA_ENABLE_BACKDROP_BLUR,LYRA_ENABLE_OFFSCREEN_RENDERING,SHADER_PATH,ASSET_PATH,FONT_PATH,"$(inherited)");
+				SWIFT_INCLUDE_PATHS = ("\"/Users/beckett/Documents/Personal Projects/X-19\"","$(inherited)");
+				SYSTEM_HEADER_SEARCH_PATHS = (/Users/beckett/VulkanSDK/1.4.350.1/macOS/include,/opt/homebrew/include,/Library/Frameworks/Mono.framework/Headers,/opt/homebrew/include/freetype2,"$(inherited)");
+				TARGET_TEMP_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/build/x19.build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		145BAA367EEA404D8E08FDDA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		261D6FA2917840769C7302A9 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = NightlyMemoryCheck;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		2F941E7592144230B6736927 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		340EF30DCD054E78BAD941F4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = NightlyMemoryCheck;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		34C1E000831D4670B93DC472 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = lyra_backdrop_shaders;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		3CE23CED0CB544E0A5DABD0A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Release";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("\"/Users/beckett/Documents/Personal Projects/X-19\"","$(inherited)");
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CPLUSPLUSFLAGS = "    -DNDEBUG '-std=gnu++23' ";
+				OTHER_LDFLAGS = (" -Wl,-search_paths_first -Wl,-headerpad_max_install_names","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = animation_test;
+				SECTORDER_FLAGS = "";
+				TARGET_TEMP_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/build/animation_test.build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		3E75798183AF4D489302B91B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = Nightly;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		41B3DB5C88634FF281D22A43 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = NightlyMemoryCheck;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		437CBD92963741EFA27F0642 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/RelWithDebInfo";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("\"/Users/beckett/Documents/Personal Projects/X-19\"","$(inherited)");
+				INSTALL_PATH = "";
+				LD_RUNPATH_SEARCH_PATHS = ("/Users/beckett/VulkanSDK/1.4.350.1/macOS/lib /opt/homebrew/lib","$(inherited)");
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CPLUSPLUSFLAGS = "       -DNDEBUG '-std=gnu++23' ";
+				OTHER_LDFLAGS = (" -Wl,-search_paths_first -Wl,-headerpad_max_install_names",/Users/beckett/VulkanSDK/1.4.350.1/macOS/lib/libvulkan.dylib,/opt/homebrew/lib/libglfw.3.4.dylib,/opt/homebrew/lib/libfreetype.dylib,"$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = mouse_dispatch_test;
+				SECTORDER_FLAGS = "";
+				SYSTEM_HEADER_SEARCH_PATHS = (/Users/beckett/VulkanSDK/1.4.350.1/macOS/include,/opt/homebrew/include,/Library/Frameworks/Mono.framework/Headers,/opt/homebrew/include/freetype2,"$(inherited)");
+				TARGET_TEMP_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/build/mouse_dispatch_test.build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		47D92D925C974358B012059C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Release";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","'TEST_FONT_PATH=\"/System/Library/Fonts/SFNS.ttf\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("\"/Users/beckett/Documents/Personal Projects/X-19\"","$(inherited)");
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CPLUSPLUSFLAGS = "    -DNDEBUG '-std=gnu++23' ";
+				OTHER_LDFLAGS = (" -Wl,-search_paths_first -Wl,-headerpad_max_install_names",/opt/homebrew/lib/libfreetype.dylib,"$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = text_atlas_test;
+				SECTORDER_FLAGS = "";
+				SYSTEM_HEADER_SEARCH_PATHS = (/Library/Frameworks/Mono.framework/Headers,/opt/homebrew/include/freetype2,"$(inherited)");
+				TARGET_TEMP_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/build/text_atlas_test.build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		48F301C8DA394D8BAF09C212 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = lyra_backdrop_shaders;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		57997F58865F43279B7A403E /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		5855347CCFD4417AAAEFE64E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Debug";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("\"/Users/beckett/Documents/Personal Projects/X-19\"","$(inherited)");
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CPLUSPLUSFLAGS = "   '-std=gnu++23' ";
+				OTHER_LDFLAGS = (" -Wl,-search_paths_first -Wl,-headerpad_max_install_names","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = animation_test;
+				SECTORDER_FLAGS = "";
+				TARGET_TEMP_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/build/animation_test.build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		5B1500E848074F319A46812C /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = Nightly;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		5E614A0DF75D4D228D328D72 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/RelWithDebInfo";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","'TEST_FONT_PATH=\"/System/Library/Fonts/SFNS.ttf\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("\"/Users/beckett/Documents/Personal Projects/X-19\"","$(inherited)");
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CPLUSPLUSFLAGS = "       -DNDEBUG '-std=gnu++23' ";
+				OTHER_LDFLAGS = (" -Wl,-search_paths_first -Wl,-headerpad_max_install_names",/opt/homebrew/lib/libfreetype.dylib,"$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = text_atlas_test;
+				SECTORDER_FLAGS = "";
+				SYSTEM_HEADER_SEARCH_PATHS = (/Library/Frameworks/Mono.framework/Headers,/opt/homebrew/include/freetype2,"$(inherited)");
+				TARGET_TEMP_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/build/text_atlas_test.build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		6259F91F3BCA4DDC8DB60905 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/MinSizeRel";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","'TEST_FONT_PATH=\"/System/Library/Fonts/SFNS.ttf\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("\"/Users/beckett/Documents/Personal Projects/X-19\"","$(inherited)");
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CPLUSPLUSFLAGS = "    -DNDEBUG '-std=gnu++23' ";
+				OTHER_LDFLAGS = (" -Wl,-search_paths_first -Wl,-headerpad_max_install_names",/opt/homebrew/lib/libfreetype.dylib,"$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = text_atlas_test;
+				SECTORDER_FLAGS = "";
+				SYSTEM_HEADER_SEARCH_PATHS = (/Library/Frameworks/Mono.framework/Headers,/opt/homebrew/include/freetype2,"$(inherited)");
+				TARGET_TEMP_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/build/text_atlas_test.build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		64081E85CB49461EAFD26E81 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = Continuous;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		6E4145ADE0934C9EB8838B46 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/RelWithDebInfo";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("\"/Users/beckett/Documents/Personal Projects/X-19\"","$(inherited)");
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CPLUSPLUSFLAGS = "       -DNDEBUG '-std=gnu++23' ";
+				OTHER_LDFLAGS = (" -Wl,-search_paths_first -Wl,-headerpad_max_install_names","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = animation_test;
+				SECTORDER_FLAGS = "";
+				TARGET_TEMP_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/build/animation_test.build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		7433968FE61C4F6F8BBBE2A8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				SDKROOT = "";
+				SWIFT_VERSION = 4.0;
+				SYMROOT = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/build";
+			};
+			name = Debug;
+		};
+		7468772A66164AAFB47F2D7A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Debug";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","'TEST_FONT_PATH=\"/System/Library/Fonts/SFNS.ttf\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("\"/Users/beckett/Documents/Personal Projects/X-19\"","$(inherited)");
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CPLUSPLUSFLAGS = "   '-std=gnu++23' ";
+				OTHER_LDFLAGS = (" -Wl,-search_paths_first -Wl,-headerpad_max_install_names",/opt/homebrew/lib/libfreetype.dylib,"$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = text_atlas_test;
+				SECTORDER_FLAGS = "";
+				SYSTEM_HEADER_SEARCH_PATHS = (/Library/Frameworks/Mono.framework/Headers,/opt/homebrew/include/freetype2,"$(inherited)");
+				TARGET_TEMP_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/build/text_atlas_test.build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		7E46E912A88E4571B3DE1A96 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		7E5A9A903ECB405B98D42FDE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		844256A8DB84462F9EC94C82 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = Experimental;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		8CBEA62032B44AF89B5A9E8D /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = Continuous;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		8D24D89BB25648D7AADBCA09 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		8E9F300BD2B642DC9F3391B6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = lyra_backdrop_shaders;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		8EE939DB61F8495294B40C62 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/MinSizeRel";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("\"/Users/beckett/Documents/Personal Projects/X-19\"","$(inherited)");
+				INSTALL_PATH = "";
+				LD_RUNPATH_SEARCH_PATHS = ("/Users/beckett/VulkanSDK/1.4.350.1/macOS/lib /opt/homebrew/lib","$(inherited)");
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CPLUSPLUSFLAGS = "    -DNDEBUG '-std=gnu++23' ";
+				OTHER_LDFLAGS = (" -Wl,-search_paths_first -Wl,-headerpad_max_install_names",/Users/beckett/VulkanSDK/1.4.350.1/macOS/lib/libvulkan.dylib,/opt/homebrew/lib/libglfw.3.4.dylib,/opt/homebrew/lib/libfreetype.dylib,"$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = mouse_dispatch_test;
+				SECTORDER_FLAGS = "";
+				SYSTEM_HEADER_SEARCH_PATHS = (/Users/beckett/VulkanSDK/1.4.350.1/macOS/include,/opt/homebrew/include,/Library/Frameworks/Mono.framework/Headers,/opt/homebrew/include/freetype2,"$(inherited)");
+				TARGET_TEMP_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/build/mouse_dispatch_test.build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		8F91F601097440F189731BC6 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/MinSizeRel";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("\"/Users/beckett/Documents/Personal Projects/X-19\"","$(inherited)");
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CPLUSPLUSFLAGS = "    -DNDEBUG '-std=gnu++23' ";
+				OTHER_LDFLAGS = (" -Wl,-search_paths_first -Wl,-headerpad_max_install_names","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = animation_test;
+				SECTORDER_FLAGS = "";
+				TARGET_TEMP_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/build/animation_test.build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		914A96CC1588434D8B7F0183 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = lyra_backdrop_shaders;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		9DE98130671C498AA3C32DBB /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = Nightly;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		AA198600EE774A078EDCF546 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = Experimental;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		B0E84E8BB3344DE7AF4ADC73 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		B980590985A04E97A334B55E /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = NightlyMemoryCheck;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		B9807DADE26D44368F5DBB56 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		BAE12F677FB643A7A28B74A8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		C2A41A0DBC364E3B8CD15DFB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Debug";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","'LYRA_ENABLE_MACOS_WINDOW_BLUR=1'","'LYRA_ENABLE_BACKDROP_BLUR=1'","'LYRA_ENABLE_OFFSCREEN_RENDERING=1'","'SHADER_PATH=\"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Shaders\"'","'ASSET_PATH=\"/Users/beckett/Documents/Personal Projects/X-19/Assets\"'","'FONT_PATH=\"/System/Library/Fonts/SFNS.ttf\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("\"/Users/beckett/Documents/Personal Projects/X-19\"","$(inherited)");
+				INSTALL_PATH = "";
+				LD_RUNPATH_SEARCH_PATHS = ("/Users/beckett/VulkanSDK/1.4.350.1/macOS/lib /opt/homebrew/lib","$(inherited)");
+				LIBRARY_SEARCH_PATHS = ("/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk/usr/lib/swift/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk/usr/lib/swift,"$(inherited)");
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CPLUSPLUSFLAGS = "   '-std=gnu++23' ";
+				OTHER_LDFLAGS = ("","-framework AppKit",/Users/beckett/VulkanSDK/1.4.350.1/macOS/lib/libvulkan.dylib,/opt/homebrew/lib/libglfw.3.4.dylib,/opt/homebrew/lib/libfreetype.dylib,"-framework Cocoa","-framework IOKit","-framework CoreVideo","-framework QuartzCore","-framework Metal","-lobjc","-lc++","-lc++","$(inherited)");
+				OTHER_REZFLAGS = "";
+				OTHER_SWIFT_FLAGS = ("-Onone    ","$(inherited)");
+				PRODUCT_NAME = x19;
+				SECTORDER_FLAGS = "";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (LYRA_ENABLE_MACOS_WINDOW_BLUR,LYRA_ENABLE_BACKDROP_BLUR,LYRA_ENABLE_OFFSCREEN_RENDERING,SHADER_PATH,ASSET_PATH,FONT_PATH,"$(inherited)");
+				SWIFT_INCLUDE_PATHS = ("\"/Users/beckett/Documents/Personal Projects/X-19\"","$(inherited)");
+				SYSTEM_HEADER_SEARCH_PATHS = (/Users/beckett/VulkanSDK/1.4.350.1/macOS/include,/opt/homebrew/include,/Library/Frameworks/Mono.framework/Headers,/opt/homebrew/include/freetype2,"$(inherited)");
+				TARGET_TEMP_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/build/x19.build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		C474A2E1834946F38504EB75 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				SDKROOT = "";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 4.0;
+				SYMROOT = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/build";
+			};
+			name = RelWithDebInfo;
+		};
+		C4A0BA194EC34EC89F992D73 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/MinSizeRel";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","'LYRA_ENABLE_MACOS_WINDOW_BLUR=1'","'LYRA_ENABLE_BACKDROP_BLUR=1'","'LYRA_ENABLE_OFFSCREEN_RENDERING=1'","'SHADER_PATH=\"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Shaders\"'","'ASSET_PATH=\"/Users/beckett/Documents/Personal Projects/X-19/Assets\"'","'FONT_PATH=\"/System/Library/Fonts/SFNS.ttf\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("\"/Users/beckett/Documents/Personal Projects/X-19\"","$(inherited)");
+				INSTALL_PATH = "";
+				LD_RUNPATH_SEARCH_PATHS = ("/Users/beckett/VulkanSDK/1.4.350.1/macOS/lib /opt/homebrew/lib","$(inherited)");
+				LIBRARY_SEARCH_PATHS = ("/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk/usr/lib/swift/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk/usr/lib/swift,"$(inherited)");
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CPLUSPLUSFLAGS = "    -DNDEBUG '-std=gnu++23' ";
+				OTHER_LDFLAGS = ("","-framework AppKit",/Users/beckett/VulkanSDK/1.4.350.1/macOS/lib/libvulkan.dylib,/opt/homebrew/lib/libglfw.3.4.dylib,/opt/homebrew/lib/libfreetype.dylib,"-framework Cocoa","-framework IOKit","-framework CoreVideo","-framework QuartzCore","-framework Metal","-lobjc","-lc++","-lc++","$(inherited)");
+				OTHER_REZFLAGS = "";
+				OTHER_SWIFT_FLAGS = ("-Osize ","$(inherited)");
+				PRODUCT_NAME = x19;
+				SECTORDER_FLAGS = "";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (LYRA_ENABLE_MACOS_WINDOW_BLUR,LYRA_ENABLE_BACKDROP_BLUR,LYRA_ENABLE_OFFSCREEN_RENDERING,SHADER_PATH,ASSET_PATH,FONT_PATH,"$(inherited)");
+				SWIFT_INCLUDE_PATHS = ("\"/Users/beckett/Documents/Personal Projects/X-19\"","$(inherited)");
+				SYSTEM_HEADER_SEARCH_PATHS = (/Users/beckett/VulkanSDK/1.4.350.1/macOS/include,/opt/homebrew/include,/Library/Frameworks/Mono.framework/Headers,/opt/homebrew/include/freetype2,"$(inherited)");
+				TARGET_TEMP_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/build/x19.build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		C5949571533140809812E3B6 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = Experimental;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		C76FBCBE60294DE4978676C3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		D05D97AD61FB4F708AF744A9 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				SDKROOT = "";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 4.0;
+				SYMROOT = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/build";
+			};
+			name = MinSizeRel;
+		};
+		D6E3027404B9420D964A4901 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				SDKROOT = "";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 4.0;
+				SYMROOT = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/build";
+			};
+			name = Release;
+		};
+		DF0ABB28D65044F88046E84E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Debug";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("\"/Users/beckett/Documents/Personal Projects/X-19\"","$(inherited)");
+				INSTALL_PATH = "";
+				LD_RUNPATH_SEARCH_PATHS = ("/Users/beckett/VulkanSDK/1.4.350.1/macOS/lib /opt/homebrew/lib","$(inherited)");
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CPLUSPLUSFLAGS = "   '-std=gnu++23' ";
+				OTHER_LDFLAGS = (" -Wl,-search_paths_first -Wl,-headerpad_max_install_names",/Users/beckett/VulkanSDK/1.4.350.1/macOS/lib/libvulkan.dylib,/opt/homebrew/lib/libglfw.3.4.dylib,/opt/homebrew/lib/libfreetype.dylib,"$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = mouse_dispatch_test;
+				SECTORDER_FLAGS = "";
+				SYSTEM_HEADER_SEARCH_PATHS = (/Users/beckett/VulkanSDK/1.4.350.1/macOS/include,/opt/homebrew/include,/Library/Frameworks/Mono.framework/Headers,/opt/homebrew/include/freetype2,"$(inherited)");
+				TARGET_TEMP_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/build/mouse_dispatch_test.build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		DFF17D0E05004BF68772B10E /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = Continuous;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		E7024F12A4C74A30A20E591B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = Experimental;
+				SECTORDER_FLAGS = "";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		EF2EC2A99D244B248BDBF0F4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Release";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 1;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","'LYRA_ENABLE_MACOS_WINDOW_BLUR=1'","'LYRA_ENABLE_BACKDROP_BLUR=1'","'LYRA_ENABLE_OFFSCREEN_RENDERING=1'","'SHADER_PATH=\"/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/Shaders\"'","'ASSET_PATH=\"/Users/beckett/Documents/Personal Projects/X-19/Assets\"'","'FONT_PATH=\"/System/Library/Fonts/SFNS.ttf\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("\"/Users/beckett/Documents/Personal Projects/X-19\"","$(inherited)");
+				INSTALL_PATH = "";
+				LD_RUNPATH_SEARCH_PATHS = ("/Users/beckett/VulkanSDK/1.4.350.1/macOS/lib /opt/homebrew/lib","$(inherited)");
+				LIBRARY_SEARCH_PATHS = ("/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk/usr/lib/swift/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk/usr/lib/swift,"$(inherited)");
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CPLUSPLUSFLAGS = "    -DNDEBUG '-std=gnu++23' ";
+				OTHER_LDFLAGS = ("","-framework AppKit",/Users/beckett/VulkanSDK/1.4.350.1/macOS/lib/libvulkan.dylib,/opt/homebrew/lib/libglfw.3.4.dylib,/opt/homebrew/lib/libfreetype.dylib,"-framework Cocoa","-framework IOKit","-framework CoreVideo","-framework QuartzCore","-framework Metal","-lobjc","-lc++","-lc++","$(inherited)");
+				OTHER_REZFLAGS = "";
+				OTHER_SWIFT_FLAGS = ("   ","$(inherited)");
+				PRODUCT_NAME = x19;
+				SECTORDER_FLAGS = "";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (LYRA_ENABLE_MACOS_WINDOW_BLUR,LYRA_ENABLE_BACKDROP_BLUR,LYRA_ENABLE_OFFSCREEN_RENDERING,SHADER_PATH,ASSET_PATH,FONT_PATH,"$(inherited)");
+				SWIFT_INCLUDE_PATHS = ("\"/Users/beckett/Documents/Personal Projects/X-19\"","$(inherited)");
+				SYSTEM_HEADER_SEARCH_PATHS = (/Users/beckett/VulkanSDK/1.4.350.1/macOS/include,/opt/homebrew/include,/Library/Frameworks/Mono.framework/Headers,/opt/homebrew/include/freetype2,"$(inherited)");
+				TARGET_TEMP_DIR = "/Users/beckett/Documents/Personal Projects/X-19/build-macos-blur/build/x19.build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		02D645C9C8A642E386319CDF /* Build configuration list for PBXAggregateTarget "Experimental" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA198600EE774A078EDCF546 /* Debug */,
+				E7024F12A4C74A30A20E591B /* Release */,
+				C5949571533140809812E3B6 /* MinSizeRel */,
+				844256A8DB84462F9EC94C82 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		051CE25B1C354F57A2A68A10 /* Build configuration list for PBXAggregateTarget "Nightly" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3E75798183AF4D489302B91B /* Debug */,
+				019FB912708C495BB7CADF74 /* Release */,
+				9DE98130671C498AA3C32DBB /* MinSizeRel */,
+				5B1500E848074F319A46812C /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		0BA2B16095474D628F483AB7 /* Build configuration list for PBXAggregateTarget "RUN_TESTS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C76FBCBE60294DE4978676C3 /* Debug */,
+				145BAA367EEA404D8E08FDDA /* Release */,
+				57997F58865F43279B7A403E /* MinSizeRel */,
+				7E46E912A88E4571B3DE1A96 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		1B40A15F2BF4494CA0078089 /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BAE12F677FB643A7A28B74A8 /* Debug */,
+				7E5A9A903ECB405B98D42FDE /* Release */,
+				8D24D89BB25648D7AADBCA09 /* MinSizeRel */,
+				2F941E7592144230B6736927 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		40713C8A86B145CD8BEED4BA /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B9807DADE26D44368F5DBB56 /* Debug */,
+				0FA9C24A78594E46AA3BF488 /* Release */,
+				0AAD8845C48F4B78A5EDAF58 /* MinSizeRel */,
+				B0E84E8BB3344DE7AF4ADC73 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		46F61755302A43A689979816 /* Build configuration list for PBXNativeTarget "x19" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C2A41A0DBC364E3B8CD15DFB /* Debug */,
+				EF2EC2A99D244B248BDBF0F4 /* Release */,
+				C4A0BA194EC34EC89F992D73 /* MinSizeRel */,
+				13759A31BCDE452AA2324F84 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8513BEF6D7FC4E1CB06813F8 /* Build configuration list for PBXNativeTarget "mouse_dispatch_test" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DF0ABB28D65044F88046E84E /* Debug */,
+				0340E9BA32474CC1AC1BA414 /* Release */,
+				8EE939DB61F8495294B40C62 /* MinSizeRel */,
+				437CBD92963741EFA27F0642 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		943AC23959B942C39490ABD5 /* Build configuration list for PBXAggregateTarget "NightlyMemoryCheck" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				340EF30DCD054E78BAD941F4 /* Debug */,
+				41B3DB5C88634FF281D22A43 /* Release */,
+				261D6FA2917840769C7302A9 /* MinSizeRel */,
+				B980590985A04E97A334B55E /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		9CC14CD39870446DA240158B /* Build configuration list for PBXNativeTarget "animation_test" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5855347CCFD4417AAAEFE64E /* Debug */,
+				3CE23CED0CB544E0A5DABD0A /* Release */,
+				8F91F601097440F189731BC6 /* MinSizeRel */,
+				6E4145ADE0934C9EB8838B46 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		9CFC1E7AF40B4CC5A6A516CE /* Build configuration list for PBXNativeTarget "text_atlas_test" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7468772A66164AAFB47F2D7A /* Debug */,
+				47D92D925C974358B012059C /* Release */,
+				6259F91F3BCA4DDC8DB60905 /* MinSizeRel */,
+				5E614A0DF75D4D228D328D72 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C8CC839E83F44A37958D9D91 /* Build configuration list for PBXProject "Lyra" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7433968FE61C4F6F8BBBE2A8 /* Debug */,
+				D6E3027404B9420D964A4901 /* Release */,
+				D05D97AD61FB4F708AF744A9 /* MinSizeRel */,
+				C474A2E1834946F38504EB75 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D9A066ACFF6445C5B8BF17D4 /* Build configuration list for PBXAggregateTarget "lyra_backdrop_shaders" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8E9F300BD2B642DC9F3391B6 /* Debug */,
+				34C1E000831D4670B93DC472 /* Release */,
+				914A96CC1588434D8B7F0183 /* MinSizeRel */,
+				48F301C8DA394D8BAF09C212 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D9F849FA365742D894793794 /* Build configuration list for PBXAggregateTarget "Continuous" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				64081E85CB49461EAFD26E81 /* Debug */,
+				03D5697553FF46B08A129BEB /* Release */,
+				DFF17D0E05004BF68772B10E /* MinSizeRel */,
+				8CBEA62032B44AF89B5A9E8D /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 03182CBA7773491DBFF64A76 /* Project object */;
+}

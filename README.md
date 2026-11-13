@@ -7,6 +7,8 @@ foundation and rectangle/click vertical slice. Phase 2 adds runtime texture
 loading and text rendered through independent image and glyph texture arrays.
 The animation design adds position animation presets, repeat counts, modified-
 batch detection, and mouse event dispatch.
+The effect design adds optional Gaussian backdrop blur for widgets/text and an
+optional macOS system window backdrop.
 
 **Version:** `0.2.0` — **Cloudsdale**
 
@@ -64,6 +66,22 @@ active build.
 - **Text layout:** label `x` and `baselineY` use top-left-origin logical window
   pixels. Scale `1.0` corresponds to the 48-pixel glyph rasterization size.
 
+### Backdrop effects
+- `Rectangle::backdropBlurEnabled` blurs the already-rendered scene within the
+  rectangle's bounds before drawing the rectangle. The rectangle itself stays
+  sharp; translucency in its tint or texture reveals the blurred backdrop.
+- `TextLabel::backdropBlurEnabled` blurs the measured glyph bounds before
+  drawing the label, so the glyphs remain sharp.
+- The in-app effect uses a separable, 9-tap Gaussian blur (horizontal then
+  vertical). `backdropBlurRadius` is per-component and measured in logical
+  window pixels. Painter's order determines which earlier UI is behind a
+  component; text renders after rectangles.
+- macOS can optionally place an AppKit `NSVisualEffectView` behind Vulkan
+  content, blurring the system-managed desktop/windows behind the window. This
+  is separate from in-app blur and depends on transparent surface composition.
+- Other platforms do not capture the desktop or other apps; they can use only
+  the in-app effect on Lyra content rendered earlier in the frame.
+
 ### Animation and input
 - Rectangles support linear position animation and cubic Bezier paths with two
   control points.
@@ -87,6 +105,8 @@ Shaders/
   textured.frag.spv
   text.vert / text.frag           # dedicated glyph-array shaders
   text.vert.spv / text.frag.spv
+  backdrop_blur.vert/.frag        # optional fullscreen Gaussian blur shaders
+  backdrop_blur.*.spv             # generated in the active build's Shaders/
   triangle.vert / .frag / .spv   # Phase 1 shaders (retained, unused)
 Assets/
   checkerboard.ppm     # test texture asset (64x64 RGB PPM P6)
@@ -96,6 +116,8 @@ Text.hpp / Text.cpp            # FreeType glyph rasterizer + TextLabel API
 Animation.hpp / Animation.cpp  # linear and cubic Bezier position animation
 Version.hpp                    # required canonical project/version metadata
 Window.hpp / Window.cpp        # GLFW window (Vulkan, no OpenGL)
+MacOSWindowBlur.swift          # optional AppKit NSVisualEffectView layer
+MacOSWindowBlur.mm             # optional GLFW Cocoa-window bridge
 Rectangle.hpp / Rectangle.cpp  # rectangle widget + UVs + textureLayer + click
 VulkanRenderer.hpp / VulkanRenderer.cpp  # Vulkan device/swapchain/pipeline/descriptors/batching
 API_Portal.hpp                 # public API entry point
@@ -151,6 +173,21 @@ ctest --test-dir build --output-on-failure
 
 The executable is placed in `build/x19`.
 
+In-app backdrop blur is enabled by default. Disable it at configure time with
+`-DLYRA_ENABLE_BACKDROP_BLUR=OFF`. The optional macOS desktop/window backdrop
+is off by default; enable it with Xcode or Ninja (CMake's Swift support is not
+available with Unix Makefiles):
+
+```bash
+cmake -G Xcode -S . -B build-macos \
+  -DVulkan_ROOT=/Users/beckett/VulkanSDK/1.4.350.1/macOS \
+  -DLYRA_ENABLE_MACOS_WINDOW_BLUR=ON
+cmake --build build-macos --config Debug --target x19
+```
+
+`LYRA_ENABLE_BACKDROP_BLUR` and `LYRA_ENABLE_MACOS_WINDOW_BLUR` are independent
+build-time options.
+
 ## Run (from the project root, so `Shaders/` and `Assets/` are found)
 
 ```bash
@@ -160,11 +197,19 @@ The executable is placed in `build/x19`.
 `run.sh` sets `VULKAN_SDK`, `DYLD_LIBRARY_PATH`, and `VK_ICD_FILENAMES`
 automatically (needed for MoltenVK on macOS) and launches `build/x19`.
 
-You should see a window with solid-color and textured rectangles. Clicking
+To configure/build the optional macOS system backdrop and launch its
+availability test, run `./run-macos-blur.sh`. It uses a separate
+`build-macos-blur` Xcode build directory, prints whether AppKit attached its
+effect view and whether the Vulkan surface supports transparent composition,
+then opens the test window. Set `VULKAN_SDK` or `VULKAN_ROOT` if the SDK is in a
+different location.
+
+You should see a window with solid-color and textured rectangles. The
+translucent checkerboard rectangle blurs the checkerboard behind it, and the
+`CHECKER` label blurs its measured background area while its letters remain
+sharp. Clicking
 inside a rectangle prints its callback to the console; clicking outside prints
-nothing. The gradient rectangle overlaps the checkerboard and is topmost, so
-clicks in the overlap hit the gradient rectangle. The red and green rectangles
-also animate using the linear and Bezier presets.
+nothing. The animated blue rectangle uses the repeating Bezier preset.
 
 ## Migration status
 
@@ -186,6 +231,8 @@ also animate using the linear and Bezier presets.
 | Per-animation repeat count (`0` = infinite) | ✅ Implemented |
 | Batch-input modification detection and rebuild | ✅ Implemented |
 | GLFW mouse capture and rectangle click dispatch | ✅ Implemented |
+| Optional in-app Gaussian backdrop blur for rectangles and text | ✅ Implemented |
+| Optional macOS system window backdrop blur | ✅ Implemented (opt-in build) |
 | Borders / advanced styling | ⏳ Deferred |
 | PNG/JPEG decoding | ⏳ Deferred (PPM P6 only) |
 | Multi-window / layout system / multithreading | ⏳ Deferred |
@@ -212,17 +259,18 @@ supported. UTF-8 shaping, kerning, and advanced typography are not implemented.
 Text uses its own padded one-layer-per-glyph `R8_UNORM` Vulkan 2D array,
 descriptor set, pipeline, and mapped geometry buffers; it never shares the
 UI-image texture array or rectangle buffers. Glyph bitmap rows and screen
-coordinates both use a top-left origin, so the text is upright. All visible
-text is submitted as one indexed text draw per frame (up to 4096 glyph quads),
-after the rectangle draw groups.
+coordinates both use a top-left origin, so the text is upright. Text remains
+bounded to 4096 glyph quads; labels are submitted in order so labels with
+backdrop blur can sample the previously rendered scene.
 
 ## Draw-call behavior
 
-Rectangles are combined into contiguous draw groups with the same texture
-layer. Grouping only adjacent rectangles preserves painter's order and
-transparency. The draw-call count is the number of contiguous texture-layer
-runs in the visible rectangle list; modifying rectangle batch data triggers a
-batch rebuild before the next draw.
+Adjacent non-blurred rectangles with the same texture layer share a draw call.
+Blur-enabled rectangles split those runs so the renderer can blur the prior
+scene before drawing each component. Each enabled component uses two scoped
+Gaussian passes, then composites only its own bounds; unrelated screen areas
+are not blurred. Modifying rectangle batch data triggers a batch rebuild before
+the next draw.
 
 ## Known limitations
 

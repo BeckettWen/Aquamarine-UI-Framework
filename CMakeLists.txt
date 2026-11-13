@@ -21,6 +21,25 @@ endforeach()
 project(Lyra VERSION "${LYRA_VERSION_MAJOR}.${LYRA_VERSION_MINOR}.${LYRA_VERSION_PATCH}"
         LANGUAGES CXX)
 
+option(LYRA_ENABLE_BACKDROP_BLUR
+    "Build the in-app Gaussian backdrop blur for widgets and text" ON)
+option(LYRA_ENABLE_MACOS_WINDOW_BLUR
+    "Build the optional macOS NSVisualEffectView window backdrop" OFF)
+
+if(LYRA_ENABLE_MACOS_WINDOW_BLUR)
+    if(NOT APPLE)
+        message(FATAL_ERROR "LYRA_ENABLE_MACOS_WINDOW_BLUR is only supported on macOS")
+    endif()
+    if(NOT CMAKE_GENERATOR STREQUAL "Xcode" AND
+       NOT CMAKE_GENERATOR MATCHES "Ninja")
+        message(FATAL_ERROR
+            "The optional Swift/AppKit blur layer requires the Xcode or Ninja generator. "
+            "Configure with -G Xcode (or -G Ninja).")
+    endif()
+    enable_language(OBJCXX)
+    enable_language(Swift)
+endif()
+
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
     "${LYRA_VERSION_HEADER}")
 
@@ -72,13 +91,56 @@ add_executable(x19
     VulkanRenderer.cpp
 )
 
+if(LYRA_ENABLE_MACOS_WINDOW_BLUR)
+    target_sources(x19 PRIVATE MacOSWindowBlur.mm MacOSWindowBlur.swift)
+    target_compile_definitions(x19 PRIVATE LYRA_ENABLE_MACOS_WINDOW_BLUR=1)
+    target_link_libraries(x19 PRIVATE "-framework AppKit")
+endif()
+
+if(LYRA_ENABLE_BACKDROP_BLUR)
+    target_compile_definitions(x19 PRIVATE LYRA_ENABLE_BACKDROP_BLUR=1)
+endif()
+
+if(LYRA_ENABLE_BACKDROP_BLUR OR LYRA_ENABLE_MACOS_WINDOW_BLUR)
+    target_compile_definitions(x19 PRIVATE LYRA_ENABLE_OFFSCREEN_RENDERING=1)
+
+    find_program(LYRA_GLSLC_EXECUTABLE glslc
+        HINTS "${Vulkan_ROOT}/bin" "$ENV{VULKAN_SDK}/bin")
+    if(NOT LYRA_GLSLC_EXECUTABLE)
+        message(FATAL_ERROR
+            "Backdrop rendering requires glslc from the Vulkan SDK. Set Vulkan_ROOT or VULKAN_SDK.")
+    endif()
+
+    set(LYRA_SHADER_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/Shaders")
+    file(MAKE_DIRECTORY "${LYRA_SHADER_OUTPUT_DIR}")
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/Shaders/"
+         DESTINATION "${LYRA_SHADER_OUTPUT_DIR}")
+    set(LYRA_BACKDROP_SHADER_OUTPUTS)
+    foreach(shader backdrop_blur.vert backdrop_blur.frag)
+        set(shader_output "${LYRA_SHADER_OUTPUT_DIR}/${shader}.spv")
+        add_custom_command(
+            OUTPUT "${shader_output}"
+            COMMAND "${LYRA_GLSLC_EXECUTABLE}"
+                    "${CMAKE_CURRENT_SOURCE_DIR}/Shaders/${shader}"
+                    -o "${shader_output}"
+            DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Shaders/${shader}"
+            VERBATIM
+        )
+        list(APPEND LYRA_BACKDROP_SHADER_OUTPUTS "${shader_output}")
+    endforeach()
+    add_custom_target(lyra_backdrop_shaders DEPENDS ${LYRA_BACKDROP_SHADER_OUTPUTS})
+    add_dependencies(x19 lyra_backdrop_shaders)
+else()
+    set(LYRA_SHADER_OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Shaders")
+endif()
+
 target_include_directories(x19 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(x19 PRIVATE Vulkan::Vulkan glfw Freetype::Freetype)
 
 # Shader directory (source + compiled .spv files are loaded at runtime from here).
 target_compile_definitions(x19 PRIVATE
-    SHADER_PATH="${CMAKE_CURRENT_SOURCE_DIR}/Shaders"
+    SHADER_PATH="${LYRA_SHADER_OUTPUT_DIR}"
 )
 
 # Assets directory (PPM P6 textures loaded at runtime from here).

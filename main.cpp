@@ -22,6 +22,10 @@
 #include <memory>
 #include <vector>
 
+#ifndef SHADER_PATH
+#define SHADER_PATH "Shaders"
+#endif
+
 int main() {
     std::cout << lyra::version::projectName << " " << lyra::version::string
               << " (" << lyra::version::codename << ")\n";
@@ -47,7 +51,7 @@ int main() {
     if (!renderer.init(window.handle(),
                        window.fbWidth(), window.fbHeight(),
                        window.width(), window.height(),
-                       "Shaders")) {
+                       SHADER_PATH)) {
         std::cerr << "Demo: failed to initialize Vulkan renderer\n";
         renderer.destroy();
         glfwTerminate();
@@ -98,55 +102,55 @@ int main() {
     std::vector<Rectangle> rects;
     rects.reserve(5);
 
-    // Solid red rectangle (no texture, layer -1)
-    rects.emplace_back(50.0f, 50.0f, 200.0f, 150.0f,
-                       std::array<float, 4>{1.0f, 0.2f, 0.2f, 1.0f});
+    // Solid blue rectangle (no texture, layer -1), in the upper-left demo zone.
+    rects.emplace_back(50.0f, 150.0f, 160.0f, 100.0f,
+                       std::array<float, 4>{0.2f, 0.45f, 1.0f, 1.0f});
     rects.back().textureLayer = -1;
     rects.back().onClick = []() {
-        std::cout << "click: solid red rectangle\n";
+        std::cout << "click: solid blue rectangle\n";
     };
 
-    // Textured checkerboard rectangle (layer 0)
-    rects.emplace_back(300.0f, 50.0f, 200.0f, 150.0f,
-                       std::array<float, 4>{1.0f, 1.0f, 1.0f, 1.0f});
+    // Blue-tinted checkerboard rectangle (layer 0).
+    rects.emplace_back(280.0f, 150.0f, 180.0f, 140.0f,
+                       std::array<float, 4>{0.45f, 0.7f, 1.0f, 1.0f});
     rects.back().textureLayer = layerRed;
     rects.back().onClick = []() {
         std::cout << "click: checkerboard rectangle\n";
     };
 
-    // Textured gradient rectangle (layer 1) overlapping checkerboard
-    rects.emplace_back(350.0f, 100.0f, 200.0f, 150.0f,
-                       std::array<float, 4>{1.0f, 1.0f, 1.0f, 0.9f});
+    // Shaded gradient rectangle (layer 1), in its own lower-right zone.
+    rects.emplace_back(520.0f, 300.0f, 220.0f, 170.0f,
+                       std::array<float, 4>{0.5f, 0.72f, 1.0f, 0.9f});
     rects.back().textureLayer = layerGrad;
     rects.back().onClick = []() {
-        std::cout << "click: gradient rectangle (topmost in overlap)\n";
+        std::cout << "click: shaded gradient rectangle\n";
     };
 
-    // Solid green rectangle (no texture)
-    rects.emplace_back(50.0f, 250.0f, 150.0f, 150.0f,
-                       std::array<float, 4>{0.2f, 0.8f, 0.2f, 1.0f});
+    // Solid blue rectangle (no texture), reserved as the animation zone.
+    rects.emplace_back(50.0f, 300.0f, 150.0f, 130.0f,
+                       std::array<float, 4>{0.2f, 0.45f, 1.0f, 1.0f});
     rects.back().textureLayer = -1;
     rects.back().onClick = []() {
-        std::cout << "click: solid green rectangle\n";
+        std::cout << "click: animated blue rectangle\n";
     };
 
-    // Textured checkerboard with tint (layer 0, tinted blue)
-    rects.emplace_back(250.0f, 250.0f, 150.0f, 150.0f,
-                       std::array<float, 4>{0.3f, 0.5f, 1.0f, 1.0f});
+    // Translucent blue checkerboard glass over the first checkerboard. The
+    // backdrop is blurred within this component's bounds; the checker texture
+    // itself remains sharp.
+    rects.emplace_back(340.0f, 180.0f, 160.0f, 120.0f,
+                       std::array<float, 4>{0.2f, 0.45f, 1.0f, 0.78f});
     rects.back().textureLayer = layerRed;
+    rects.back().backdropBlurEnabled = true;
+    rects.back().backdropBlurRadius = 12.0f;
     rects.back().onClick = []() {
         std::cout << "click: tinted checkerboard rectangle\n";
     };
 
-    // Demonstrate both animation presets and the per-animation repeat count.
-    // The red rectangle moves linearly between its start and destination three
-    // times; the renderer detects its changed geometry and rebuilds the batch.
-    if (!rects.front().animateTo(260.0f, 50.0f, 2.5f, 3))
-        std::cerr << "Demo: failed to start linear rectangle animation\n";
-    // The green rectangle follows a cubic Bezier loop (repeatCount 0 = forever).
-    if (!rects[3].animateBezierTo(50.0f, 250.0f,
-                                  250.0f, 250.0f,
-                                  250.0f, 400.0f,
+    // The blue rectangle follows a cubic Bezier path confined to the
+    // lower-left zone (repeatCount 0 = forever).
+    if (!rects[3].animateBezierTo(50.0f, 430.0f,
+                                  80.0f, 300.0f,
+                                  80.0f, 430.0f,
                                   3.0f, 0))
         std::cerr << "Demo: failed to start Bezier rectangle animation\n";
 
@@ -158,11 +162,17 @@ int main() {
     // and vertex/index batch. Coordinates are top-left-origin; y is the font
     // baseline in logical window pixels.
     std::vector<TextLabel> labels;
-    labels.reserve(2);
-    labels.push_back({"LYRA / CLOUDSDALE", 50.0f, 465.0f, 0.72f,
+    labels.reserve(4);
+    labels.push_back({"Cloudsdale", 50.0f, 95.0f, 0.8f,
                       {1.0f, 1.0f, 1.0f, 1.0f}, true});
-    labels.push_back({"TEXT HAS ITS OWN GLYPH ARRAY", 50.0f, 515.0f, 0.42f,
-                      {0.65f, 0.85f, 1.0f, 1.0f}, true});
+    labels.push_back({"LYRA", 65.0f, 215.0f, 0.42f,
+                      {1.0f, 1.0f, 1.0f, 1.0f}, true});
+    labels.push_back({"CHECKER", 295.0f, 225.0f, 0.36f,
+                      {1.0f, 1.0f, 1.0f, 1.0f}, true});
+    labels.back().backdropBlurEnabled = true;
+    labels.back().backdropBlurRadius = 5.0f;
+    labels.push_back({"SHADED", 545.0f, 390.0f, 0.5f,
+                      {1.0f, 1.0f, 1.0f, 1.0f}, true});
     for (auto& label : labels)
         renderer.addText(&label);
 

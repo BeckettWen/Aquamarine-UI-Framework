@@ -1,6 +1,11 @@
 #include "Window.hpp"
 #include <iostream>
 
+#if defined(LYRA_ENABLE_MACOS_WINDOW_BLUR)
+extern "C" int lyraSetMacOSWindowBackdropBlur(GLFWwindow* window,
+                                               int enabled);
+#endif
+
 Window::Window() = default;
 
 Window::~Window() { destroy(); }
@@ -12,12 +17,24 @@ bool Window::create(int width, int height, const char* title) {
     }
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // Vulkan only, no OpenGL context
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+#if defined(LYRA_ENABLE_MACOS_WINDOW_BLUR)
+    glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+#endif
 
     m_window = glfwCreateWindow(width, height, title, nullptr, nullptr);
     if (!m_window) {
         std::cerr << "Window: failed to create GLFW window.\n";
         return false;
     }
+
+#if defined(LYRA_ENABLE_MACOS_WINDOW_BLUR)
+    if (!lyraSetMacOSWindowBackdropBlur(m_window, 1)) {
+        std::cerr << "Window: macOS backdrop blur could not be enabled; "
+                     "the window will still use its transparent framebuffer\n";
+    } else {
+        std::cout << "Window: macOS NSVisualEffectView backdrop attached\n";
+    }
+#endif
 
     glfwSetWindowUserPointer(m_window, this);
     glfwSetFramebufferSizeCallback(m_window, onFramebufferResize);
