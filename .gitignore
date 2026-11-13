@@ -41,3 +41,4 @@ Dependencies/NecessaryFiles/._Preparation.hpp
 .vscode/settings.json
 /.idea
 /.cache
+/build-macos-blur/
