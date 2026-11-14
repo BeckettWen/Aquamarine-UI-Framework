@@ -1,19 +1,17 @@
-// Lyra Phase 3 demo — Vulkan UI framework with textures, text, and animation.
+// Lyra Phase 3 demo — native Metal on macOS, Vulkan elsewhere.
 //
 // Displays solid-color and textured rectangles as indexed batch draws,
 // loads PPM P6 textures from project assets at runtime, and dispatches
 // click callbacks. Top-left-origin coordinates; latest-added rectangle is
 // topmost for both drawing and click hit-testing.
 //
-// Build:
-//   cmake -S . -B build -DVulkan_ROOT=<path-to-VulkanSDK>/macOS
-//   cmake --build build
+// Build: ./run.sh (macOS) or configure CMake for the platform backend.
 // Run (from project root, so Shaders/ and Assets/ are found):
 //   ./run.sh
 
 #include "Window.hpp"
 #include "Version.hpp"
-#include "VulkanRenderer.hpp"
+#include "Renderer.hpp"
 #include "Rectangle.hpp"
 #include "Texture.hpp"
 #include "Text.hpp"
@@ -47,12 +45,12 @@ int main() {
         return 1;
     }
 
-    VulkanRenderer renderer;
+    Renderer renderer;
     if (!renderer.init(window.handle(),
                        window.fbWidth(), window.fbHeight(),
                        window.width(), window.height(),
                        SHADER_PATH)) {
-        std::cerr << "Demo: failed to initialize Vulkan renderer\n";
+        std::cerr << "Demo: failed to initialize the renderer\n";
         renderer.destroy();
         glfwTerminate();
         return 1;
@@ -89,9 +87,9 @@ int main() {
         std::cerr << "Demo: failed to load gradient.ppm\n";
     }
 
-    // Upload textures to Vulkan before drawing.
+    // Upload textures to the selected platform renderer before drawing.
     if (!renderer.uploadTextures()) {
-        std::cerr << "Demo: failed to upload textures to Vulkan\n";
+        std::cerr << "Demo: failed to upload textures to the renderer\n";
         renderer.destroy();
         glfwTerminate();
         return 1;

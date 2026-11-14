@@ -2,9 +2,12 @@
 
 ### First version: Cloudsdale
 
-Vulkan-based experimental UI framework. Phase 1 implemented the Vulkan
-foundation and rectangle/click vertical slice. Phase 2 adds runtime texture
-loading and text rendered through independent image and glyph texture arrays.
+Experimental UI framework with a platform-native rendering backend: Swift/Metal
+on macOS and Vulkan on other platforms. The framework retains the same
+rectangle, texture, text, animation, and input model across backends. Phase 1
+implemented the graphics foundation and rectangle/click vertical slice. Phase 2
+adds runtime texture loading and text rendered through independent image and
+glyph texture arrays.
 The animation design adds position animation presets, repeat counts, modified-
 batch detection, and mouse event dispatch.
 The effect design adds optional Gaussian backdrop blur for widgets/text and an
@@ -12,13 +15,14 @@ optional macOS system window backdrop.
 
 **Version:** `0.2.0` — **Cloudsdale**
 
-**Backend: Vulkan** (MoltenVK on macOS). OpenGL/GLEW are not part of the
-active build.
+**macOS backend: Swift + Metal. Other platforms: Vulkan.** OpenGL/GLEW are not
+part of the active build.
 
 ## Implemented
 
 ### Phase 1 (rectangle + click, retained)
-- GLFW window configured for Vulkan (no OpenGL context).
+- GLFW window configured without an OpenGL context; the selected platform
+  renderer owns graphics API setup.
 - Vulkan instance, surface, physical/logical device, graphics+present queue,
   swapchain, image views, graphics pipeline, command resources, synchronization,
   orderly teardown.
@@ -76,9 +80,20 @@ active build.
   vertical). `backdropBlurRadius` is per-component and measured in logical
   window pixels. Painter's order determines which earlier UI is behind a
   component; text renders after rectangles.
-- macOS can optionally place an AppKit `NSVisualEffectView` behind Vulkan
-  content, blurring the system-managed desktop/windows behind the window. This
-  is separate from in-app blur and depends on transparent surface composition.
+- macOS uses a Swift/Metal renderer. It can optionally place an AppKit
+  `NSVisualEffectView` behind Metal content and extend it beneath a transparent
+  native title bar, giving the title bar and window content one continuous
+  system-managed desktop blur. Metal's per-widget Gaussian pass blurs
+  only the previously rendered backdrop inside each opted-in component, then
+  draws the component sharply over it. A final full-scene blur is intentionally
+  not used because that would blur foreground widgets and text; Metal also
+  cannot sample the desktop behind the window.
+- Metal devices, textures, pipelines, command buffers, blur passes, and
+  presentation are implemented in Swift using Metal. The small Objective-C++
+  layer only adapts Lyra's established C++ widget API and GLFW's Cocoa window;
+  no Vulkan/MoltenVK renderer is used on macOS. The renderer reuses
+  triple-buffered GPU buffers and batches adjacent non-blurred rectangles to
+  reduce allocation and draw-call overhead.
 - Other platforms do not capture the desktop or other apps; they can use only
   the in-app effect on Lyra content rendered earlier in the frame.
 
@@ -86,14 +101,13 @@ active build.
 - Rectangles support linear position animation and cubic Bezier paths with two
   control points.
 - Each animation accepts a total play count; `0` means repeat indefinitely.
-- The renderer advances animations once per frame and compares the current
-  rectangle batch inputs with the previous snapshot. When geometry or related
-  batch data changes, it rebuilds the mapped vertex/index arrays before drawing.
+- The renderer advances animations once per frame. Vulkan compares rectangle
+  batch inputs with a cached snapshot; Metal rebuilds its lightweight CPU frame
+  buffers before submitting the Swift/Metal draw calls.
 - GLFW mouse-button events are captured by `Window` and dispatched to the
   topmost enabled rectangle under the cursor. A left-button press invokes its
   `onClick` response once; other buttons/actions and outside clicks are ignored.
-- The demo animates the red rectangle with the linear preset and the green
-  rectangle with a repeating cubic Bezier path.
+- The demo animates a blue rectangle with a repeating cubic Bezier path.
 
 ## Repository layout
 
@@ -111,18 +125,20 @@ Shaders/
 Assets/
   checkerboard.ppm     # test texture asset (64x64 RGB PPM P6)
   gradient.ppm         # test texture asset (64x64 RGB PPM P6)
-Texture.hpp / Texture.cpp      # PPM loader + TextureManager (Vulkan array resources)
+Texture.hpp / Texture.cpp      # shared PPM loader; Vulkan-side texture manager
 Text.hpp / Text.cpp            # FreeType glyph rasterizer + TextLabel API
 Animation.hpp / Animation.cpp  # linear and cubic Bezier position animation
 Version.hpp                    # required canonical project/version metadata
-Window.hpp / Window.cpp        # GLFW window (Vulkan, no OpenGL)
-MacOSWindowBlur.swift          # optional AppKit NSVisualEffectView layer
-MacOSWindowBlur.mm             # optional GLFW Cocoa-window bridge
+Window.hpp / Window.cpp        # GLFW native window, input and resize events
 Rectangle.hpp / Rectangle.cpp  # rectangle widget + UVs + textureLayer + click
 VulkanRenderer.hpp / VulkanRenderer.cpp  # Vulkan device/swapchain/pipeline/descriptors/batching
+MetalRenderer.hpp/.mm          # Objective-C++ Lyra API adapter and Cocoa bridge
+MetalRenderer.swift            # Swift Metal renderer and GPU command encoding
+Shaders/Lyra.metal             # Metal vertex/fragment shaders, compiled at build time
+Renderer.hpp                   # platform-selected renderer entry point
 API_Portal.hpp                 # public API entry point
 main.cpp                       # demo: textures, text, animation, and click callbacks
-CMakeLists.txt                 # Vulkan + GLFW build
+CMakeLists.txt                 # Metal/Swift on macOS; Vulkan elsewhere
 README.md                      # this file
 tests/TextAtlasTest.cpp        # CPU-side glyph atlas smoke test
 tests/AnimationTest.cpp        # preset and repeat-count tests
@@ -134,8 +150,8 @@ tests/MouseDispatchTest.cpp    # topmost click dispatch test
 `Version.hpp` is the single source of truth for the project name, semantic
 version, and codename. CMake reads its numeric version macros to configure the
 package version and fails configuration if the header or required macros are
-missing. The executable includes and uses the header for startup/window and
-Vulkan application metadata, so the version is part of the compile process.
+missing. The executable includes and uses the header for startup/window
+metadata; the Vulkan backend also uses it for Vulkan application metadata.
 Update the macros in `Version.hpp` to change the version; do not duplicate the
 version number in CMake or application source.
 
@@ -144,12 +160,15 @@ but are **not** part of the active CMake build.
 
 ## Prerequisites
 
-- **Vulkan SDK** (loader + headers + `glslc` shader compiler). On this machine
-  it is provided locally at:
+- **Vulkan SDK** (loader + headers + `glslc` shader compiler) on non-macOS
+  platforms. On this machine it is provided locally at:
 
       /Users/beckett/VulkanSDK/1.4.350.1
 
-- **GLFW 3.4** (with Vulkan support) — installed via Homebrew on this machine.
+- **GLFW 3.4** — installed via Homebrew on this machine.
+- **macOS only:** Xcode with the Metal toolchain, plus CMake's Swift and
+  Objective-C++ language support. No Vulkan SDK or MoltenVK is used by the
+  macOS application build.
 - **FreeType** — required for glyph rasterization; CMake uses an already
   available installation (`find_package(Freetype REQUIRED)`). No package is
   installed by the project.
@@ -158,35 +177,44 @@ but are **not** part of the active CMake build.
   when configuring CMake on another system.
 - **CMake 3.15+** and a C++23 compiler (clang/g++).
 
-No packages are downloaded or installed by the build. The Vulkan SDK path must
-be supplied to CMake (see below).
+No packages are downloaded or installed by the build. On non-macOS platforms,
+provide the Vulkan SDK path to CMake (see below).
 
 ## Build
 
-From the project root:
+On macOS, configure the native Swift/Metal renderer with Xcode:
 
 ```bash
-cmake -S . -B build -DVulkan_ROOT=/Users/beckett/VulkanSDK/1.4.350.1/macOS
+cmake -G Xcode -S . -B build-metal \
+  -DLYRA_ENABLE_BACKDROP_BLUR=ON \
+  -DLYRA_ENABLE_MACOS_WINDOW_BLUR=OFF
+cmake --build build-metal --config Debug --target x19
+ctest --test-dir build-metal -C Debug --output-on-failure
+```
+
+The macOS executable is placed in `build-metal/Debug/x19`. If Xcode reports
+that the Metal Toolchain is missing, Xcode can install its optional component;
+the project itself never downloads or installs it.
+
+On other platforms, build the Vulkan backend with:
+
+```bash
+cmake -S . -B build -DVulkan_ROOT=/path/to/VulkanSDK
 cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-The executable is placed in `build/x19`.
-
-In-app backdrop blur is enabled by default. Disable it at configure time with
-`-DLYRA_ENABLE_BACKDROP_BLUR=OFF`. The optional macOS desktop/window backdrop
-is off by default; enable it with Xcode or Ninja (CMake's Swift support is not
-available with Unix Makefiles):
+In-app widget/text blur is enabled by default. Disable it with
+`-DLYRA_ENABLE_BACKDROP_BLUR=OFF`. The optional macOS AppKit desktop backdrop
+is off by default; enable it with Xcode or Ninja:
 
 ```bash
 cmake -G Xcode -S . -B build-macos \
-  -DVulkan_ROOT=/Users/beckett/VulkanSDK/1.4.350.1/macOS \
   -DLYRA_ENABLE_MACOS_WINDOW_BLUR=ON
 cmake --build build-macos --config Debug --target x19
 ```
 
-`LYRA_ENABLE_BACKDROP_BLUR` and `LYRA_ENABLE_MACOS_WINDOW_BLUR` are independent
-build-time options.
+The Metal widget/text blur and AppKit desktop backdrop are independent effects.
 
 ## Run (from the project root, so `Shaders/` and `Assets/` are found)
 
@@ -194,15 +222,13 @@ build-time options.
 ./run.sh
 ```
 
-`run.sh` sets `VULKAN_SDK`, `DYLD_LIBRARY_PATH`, and `VK_ICD_FILENAMES`
-automatically (needed for MoltenVK on macOS) and launches `build/x19`.
+On macOS, `run.sh` configures and builds the Metal backend in `build-metal`,
+then launches it. On other platforms it launches `build/x19`.
 
-To configure/build the optional macOS system backdrop and launch its
-availability test, run `./run-macos-blur.sh`. It uses a separate
-`build-macos-blur` Xcode build directory, prints whether AppKit attached its
-effect view and whether the Vulkan surface supports transparent composition,
-then opens the test window. Set `VULKAN_SDK` or `VULKAN_ROOT` if the SDK is in a
-different location.
+To configure/build both optional macOS window effects and launch their test,
+run `./run-macos-blur.sh`. It uses a separate `build-macos-blur` Xcode directory
+and reports whether AppKit attached its effect view before opening the window.
+This test uses Metal and does not require MoltenVK.
 
 You should see a window with solid-color and textured rectangles. The
 translucent checkerboard rectangle blurs the checkerboard behind it, and the
@@ -215,13 +241,14 @@ nothing. The animated blue rectangle uses the repeating Bezier preset.
 
 | Feature | Status |
 |---|---|
-| Vulkan window + render loop | ✅ Implemented |
+| Native macOS Swift/Metal renderer | ✅ Implemented |
+| Vulkan renderer on non-macOS platforms | ✅ Implemented |
 | Solid-color rectangle (top-left origin) | ✅ Implemented |
 | Rectangle click callbacks | ✅ Implemented |
 | Hit-testing after resize / hi-DPI | ✅ Implemented |
 | Topmost-first click overlap | ✅ Implemented |
-| Batched indexed draws (contiguous texture-layer runs) | ✅ Implemented |
-| Clean Vulkan/GLFW shutdown | ✅ Implemented |
+| Painter-order draws (Vulkan batches compatible runs) | ✅ Implemented |
+| Clean native renderer/GLFW shutdown | ✅ Implemented |
 | Texture loading (PPM P6) | ✅ Implemented (Phase 2) |
 | Vulkan 2D-array texture upload | ✅ Implemented (Phase 2) |
 | Texture sampling in fragment shader | ✅ Implemented (Phase 2) |
@@ -249,56 +276,46 @@ nothing. The animated blue rectangle uses the repeating Bezier preset.
 ## Text rendering
 
 Create a label with its text, logical-pixel origin/baseline, scale, and RGBA
-color, then register it with `VulkanRenderer::addText()`. Keep registered
+color, then register it with `Renderer::addText()`. Keep registered
 labels alive while the renderer uses them. The demo shows the API in `main.cpp`.
 
 The default `/System/Library/Fonts/SFNS.ttf` (SF Pro) is rasterized by FreeType
 at 48 pixels, selecting Regular first and SemiBold as a fallback. Printable
 ASCII is supported; other bytes use the `?` fallback. Newline and tab are
 supported. UTF-8 shaping, kerning, and advanced typography are not implemented.
-Text uses its own padded one-layer-per-glyph `R8_UNORM` Vulkan 2D array,
-descriptor set, pipeline, and mapped geometry buffers; it never shares the
-UI-image texture array or rectangle buffers. Glyph bitmap rows and screen
-coordinates both use a top-left origin, so the text is upright. Text remains
-bounded to 4096 glyph quads; labels are submitted in order so labels with
-backdrop blur can sample the previously rendered scene.
+Text uses an independent one-layer-per-glyph `R8` texture array and geometry
+buffer on both backends. Glyph bitmap rows and screen coordinates use a top-left
+origin. Text remains bounded to 4096 glyph quads; labels are submitted in order
+so labels with backdrop blur can sample the previously rendered scene.
 
 ## Draw-call behavior
 
-Adjacent non-blurred rectangles with the same texture layer share a draw call.
-Blur-enabled rectangles split those runs so the renderer can blur the prior
-scene before drawing each component. Each enabled component uses two scoped
-Gaussian passes, then composites only its own bounds; unrelated screen areas
-are not blurred. Modifying rectangle batch data triggers a batch rebuild before
-the next draw.
+The Vulkan backend groups adjacent non-blurred rectangles with the same texture
+layer. The Metal backend submits widgets in painter's order through Swift/Metal.
+Blur-enabled components trigger two Gaussian passes and composite only their
+bounds; unrelated screen areas are not blurred.
 
 ## Known limitations
 
-- Runtime requires `run.sh` (or equivalent env vars) for MoltenVK ICD
-  discovery on macOS.
-- Validation layers are present in the SDK but not auto-loaded; run with
-  `VK_LAYER_PATH` pointing at the SDK's explicit_layer.d directory if
-  desired.
+- macOS builds require Xcode's Metal Toolchain component and a generator with
+  Swift support (Xcode or Ninja).
+- Vulkan validation layers are not auto-loaded on non-macOS platforms.
 - A graphical display/window server is needed to open a window.
 - Batch is bounded to 64 rectangles (`MAX_RECTANGLES`).
 - Text batch is bounded to 4096 visible glyph quads (`MAX_TEXT_GLYPHS`).
 - Text rasterization requires an existing FreeType installation and a Regular
   or SemiBold font face; it supports printable ASCII, newline, and tab only.
-- Textures are non-owning in the renderer; the TextureManager owns Vulkan
-  resources and destroys them in valid order.
+- Texture records are copied into the selected renderer's resource set during
+  upload; callers can release the original records afterward.
 - Bezier animations use explicit control points; repeat count `0` is infinite.
   Finite repeats restart from the animation's starting position.
 
 ## Verification performed
 
-- CMake configures and builds using already-available dependencies.
-- Shaders compiled to SPIR-V with `glslc` from the local Vulkan SDK.
-- Vulkan SDK verified functional via `vulkaninfo` (MoltenVK, Apple M3).
-- Demo runs and displays textured rectangles from runtime-loaded PPM assets.
-- Solid-color rectangles still render; click callbacks, resize, and clean
-  shutdown verified on Phase 1 path.
-- Text atlas smoke test passes; the Vulkan demo initializes and loads the
-  Regular font glyph array. On-screen glyph orientation was corrected in the
-  vertex shader; visual inspection is still recommended.
-- Animation preset/repeat and mouse-dispatch tests pass. The interactive demo
-  starts with the animation and input paths enabled.
+- CMake configures the macOS Swift/Metal target without finding or linking
+  Vulkan/MoltenVK.
+- Swift renderer source and C++ macOS backend pass syntax/type checks.
+- The full Metal build still requires Xcode's Metal Toolchain component; this
+  environment reported it missing, so no interactive Metal run was claimed.
+- Text-atlas, animation, and Vulkan mouse-dispatch tests remain available in
+  their respective platform builds.

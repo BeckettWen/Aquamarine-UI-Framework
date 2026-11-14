@@ -1,11 +1,17 @@
 #!/bin/sh
-# Run the X-19 Vulkan demo without needing to set environment variables manually.
-# Sets up the Vulkan SDK paths for macOS (MoltenVK) and launches build/x19.
+# Configure, build, and launch Lyra with the native renderer for this platform.
+set -eu
 
-cd "$(dirname "$0")"   # ensure we run from the project root (finds Shaders/)
+PROJECT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+cd "$PROJECT_DIR"
 
-export VULKAN_SDK="/Users/beckett/VulkanSDK/1.4.350.1"
-export DYLD_LIBRARY_PATH="$VULKAN_SDK/macOS/lib:${DYLD_LIBRARY_PATH:-}"
-export VK_ICD_FILENAMES="$VULKAN_SDK/macOS/share/vulkan/icd.d/MoltenVK_icd.json"
+if [ "$(uname -s)" = "Darwin" ]; then
+    BUILD_DIR=${LYRA_BUILD_DIR:-build-metal}
+    cmake -G Xcode -S "$PROJECT_DIR" -B "$BUILD_DIR" \
+        -DLYRA_ENABLE_BACKDROP_BLUR=ON \
+        -DLYRA_ENABLE_MACOS_WINDOW_BLUR=OFF
+    cmake --build "$BUILD_DIR" --config Debug --target x19 -- -quiet
+    exec "$BUILD_DIR/Debug/x19" "$@"
+fi
 
 exec ./build/x19 "$@"

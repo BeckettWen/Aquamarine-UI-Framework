@@ -1,17 +1,14 @@
 #pragma once
 
-#define GLFW_INCLUDE_VULKAN
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 #include <functional>
 #include <string>
 
-// Thin wrapper around a GLFW window created with NO client API (Vulkan only,
-// no OpenGL context). Owns the GLFWwindow and tracks window/framebuffer size
+// Thin wrapper around a GLFW window created with no client API. The selected
+// platform renderer owns its graphics API; Window tracks window/framebuffer size
 // (logical vs framebuffer, for high-DPI) plus cursor input.
-//
-// The Vulkan surface is created by the Vulkan renderer (it needs the VkInstance
-// first), so this class does not own a VkSurfaceKHR.
 class Window {
 public:
     Window();

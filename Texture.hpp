@@ -1,10 +1,12 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-
 #include <string>
 #include <vector>
 #include <array>
+
+#if defined(LYRA_USE_VULKAN)
+#include <vulkan/vulkan.h>
+#endif
 
 // A single decoded texture record.
 //
@@ -34,7 +36,8 @@ struct TextureRecord {
 // .valid() and can inspect name/filePath for diagnostics.
 TextureRecord loadPPM(const std::string& path);
 
-// Renderer-owned texture collection.
+#if defined(LYRA_USE_VULKAN)
+// Renderer-owned Vulkan texture collection.
 //
 // Assigns stable layer indices to textures, validates that all array members
 // share compatible dimensions/format, and owns the Vulkan image / image view
@@ -103,3 +106,4 @@ private:
     VkImageView m_imageView = VK_NULL_HANDLE;
     VkSampler m_sampler = VK_NULL_HANDLE;
 };
+#endif

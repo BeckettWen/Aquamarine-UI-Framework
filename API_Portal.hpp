@@ -2,12 +2,11 @@
 
 #include "Version.hpp"
 
-// X-19 (Lyra) public API portal — Vulkan-based backend.
+// X-19 (Lyra) public API portal — platform-selected Metal or Vulkan backend.
 //
-// The framework is now Vulkan-backed. The public surface is:
-//   - Window        : GLFW window (Vulkan, no OpenGL context) + size/cursor
-//   - VulkanRenderer: Vulkan device/swapchain/pipeline + batched rectangle
-//                     and dedicated text rendering + click dispatch
+// Public surface:
+//   - Window        : GLFW native window + size/cursor/input dispatch
+//   - Renderer      : Swift/Metal on macOS; Vulkan on other platforms
 //   - Rectangle     : widget with top-left origin, color, click response,
 //                     linear/cubic-Bezier animation, and optional backdrop blur
 //   - TextLabel      : baseline-positioned label rendered from the dedicated
@@ -19,4 +18,4 @@
 #include "Window.hpp"
 #include "Rectangle.hpp"
 #include "Text.hpp"
-#include "VulkanRenderer.hpp"
+#include "Renderer.hpp"

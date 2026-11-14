@@ -1,13 +1,14 @@
 #include "Texture.hpp"
-#include <cstring>
 #include <fstream>
 #include <iostream>
-#include <sstream>
-#include <algorithm>
-#include <cstdint>
 #include <limits>
 
+#if defined(LYRA_USE_VULKAN)
+#include <cstring>
+#include <algorithm>
+#include <cstdint>
 #include <vulkan/vulkan.h>
+#endif
 
 // ---------------------------------------------------------------------------
 // PPM P6 loader
@@ -99,6 +100,7 @@ TextureRecord loadPPM(const std::string& path) {
     return rec;
 }
 
+#if defined(LYRA_USE_VULKAN)
 // ---------------------------------------------------------------------------
 // TextureManager
 // ---------------------------------------------------------------------------
@@ -442,3 +444,4 @@ void TextureManager::destroy(VkDevice device) {
     m_format = VK_FORMAT_UNDEFINED;
     m_width = m_height = m_channels = 0;
 }
+#endif
